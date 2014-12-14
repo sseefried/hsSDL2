@@ -18,6 +18,10 @@ Description:
 Data-files:         README.md, WIN32.md
 Extra-Source-files: configure, configure.ac, SDL.buildinfo.in, config.mk.in, includes/HsSDLConfig.h.in
 
+Flag ios
+  Description: Build for iOS
+  Default: False
+
 Library
   CPP-Options: -DSDL_MAIN_HANDLED
   Build-Depends: base >= 3 && < 5, bytestring, text, time, vector
@@ -62,7 +66,10 @@ Library
    Extra-Libraries: SDL2
   if os(windows)
    Extra-Libraries: SDL2main
-  Frameworks: AppKit
+  if flag(ios)
+    Frameworks: UIKit OpenGLES QuartzCore CoreAudio AudioToolbox CoreGraphics
+  else
+    Frameworks: AppKit
   GHC-Options: -Wall
 
 source-repository head
