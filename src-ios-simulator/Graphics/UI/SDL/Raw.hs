@@ -1,0 +1,40 @@
+{-# LINE 1 "Graphics/UI/SDL/Raw.hsc" #-}
+-----------------------------------------------------------------------------
+{-# LINE 2 "Graphics/UI/SDL/Raw.hsc" #-}
+-- |
+-- Module      :  Graphics.UI.SDL.Raw
+-- 
+-- The module "Graphics.UI.SDL.Raw" provides an interface to functions
+-- needed by extension libraries that depend on SDL2.
+-- 
+-- These functions should only be used internally or by dependant libraries.
+-----------------------------------------------------------------------------
+
+
+{-# LINE 12 "Graphics/UI/SDL/Raw.hsc" #-}
+module Graphics.UI.SDL.Raw
+  ( mkFinalizedSurface
+  , mkFinalizedTexture
+  , mkFinalizedWindow
+  ) where
+
+import Foreign
+import Graphics.UI.SDL.Types
+
+foreign import ccall unsafe "&SDL_FreeSurface"
+  sdlFreeSurface_finalizer' :: FunPtr (Ptr SurfaceStruct -> IO ())
+
+mkFinalizedSurface :: Ptr SurfaceStruct -> IO Surface
+mkFinalizedSurface = newForeignPtr sdlFreeSurface_finalizer'
+
+foreign import ccall unsafe "&SDL_DestroyTexture"
+  sdlDestroyTexture_finalizer' :: FunPtr (Ptr TextureStruct -> IO ())
+
+mkFinalizedTexture :: Ptr TextureStruct -> IO Texture
+mkFinalizedTexture = newForeignPtr  sdlDestroyTexture_finalizer'
+
+foreign import ccall unsafe "&SDL_DestroyWindow"
+  sdlDestroyWindow_finalizer' :: FunPtr (Ptr WindowStruct -> IO ())
+
+mkFinalizedWindow :: Ptr WindowStruct -> IO Window
+mkFinalizedWindow = newForeignPtr sdlDestroyWindow_finalizer'
