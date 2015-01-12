@@ -43,7 +43,7 @@ instance Enum MouseButton where
   toEnum 5 = MouseX2
 {-# LINE 38 "Graphics/UI/SDL/Events.hsc" #-}
   toEnum k = UnknownButton (fromIntegral k)
-  
+
   fromEnum LeftButton = 1
 {-# LINE 41 "Graphics/UI/SDL/Events.hsc" #-}
   fromEnum MiddleButton = 2
@@ -71,7 +71,7 @@ data EventData
               }
   | MouseMotion { mouseMotionWindowID :: Word32
                 , mouseMotionMouseID :: Word32
-                , mouseMotionState :: Word32 -- TODO Set of possible modifiers
+                , mouseMotionState :: [MouseButton]
                 , mouseMotionPosition :: Position
                 , mouseMotionXRelMotion :: Int32
                 , mouseMotionYRelMotion :: Int32 -- TODO Tuple up?
@@ -108,6 +108,12 @@ data EventData
   | MultiGesture -- TODO
   | DollarGesture -- TODO
   | Drop -- TODO
+  | Terminating -- TODO
+  | LowMemory -- TODO
+  | AppWillEnterBackground -- TODO
+  | AppDidEnterBackground -- TODO
+  | AppWillEnterForeground -- TODO
+  | AppDidEnterForeground -- TODO
   | Quit
   deriving (Eq, Show)
 
@@ -130,46 +136,46 @@ data WindowEvent
 
 data KeyMovement = KeyUp | KeyDown
   deriving (Eq, Show)
-  
+
 data TouchFingerEvent = TouchFingerMotion | TouchFingerDown | TouchFingerUp
-  deriving (Eq, Show)  
+  deriving (Eq, Show)
 
 instance Storable Event where
   sizeOf = const (56)
-{-# LINE 127 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 133 "Graphics/UI/SDL/Events.hsc" #-}
 
   alignment = const 4
 
   poke ptr (Event timestamp body) = do
     (\hsc_ptr -> pokeByteOff hsc_ptr 0) ptr (sdlEventType body)
-{-# LINE 132 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 138 "Graphics/UI/SDL/Events.hsc" #-}
     (\hsc_ptr -> pokeByteOff hsc_ptr 4) ptr timestamp
-{-# LINE 133 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 139 "Graphics/UI/SDL/Events.hsc" #-}
 
     case body of
       Keyboard m w r s -> do
         (\hsc_ptr -> pokeByteOff hsc_ptr 8) ptr w
-{-# LINE 137 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 143 "Graphics/UI/SDL/Events.hsc" #-}
         (\hsc_ptr -> pokeByteOff hsc_ptr 12) ptr (sdlKeyState m)
-{-# LINE 138 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 144 "Graphics/UI/SDL/Events.hsc" #-}
         (\hsc_ptr -> pokeByteOff hsc_ptr 13) ptr
-{-# LINE 139 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 145 "Graphics/UI/SDL/Events.hsc" #-}
           (if r then 1 else 0 :: Word8)
         (\hsc_ptr -> pokeByteOff hsc_ptr 14) ptr padding8
-{-# LINE 141 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 147 "Graphics/UI/SDL/Events.hsc" #-}
         (\hsc_ptr -> pokeByteOff hsc_ptr 15) ptr padding8
-{-# LINE 142 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 148 "Graphics/UI/SDL/Events.hsc" #-}
         (\hsc_ptr -> pokeByteOff hsc_ptr 16) ptr s
-{-# LINE 143 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 149 "Graphics/UI/SDL/Events.hsc" #-}
       _ -> error "poke: unhandled event type"
 
    where padding8 = 0 :: Word8
 
   peek ptr = do
     evType <- (\hsc_ptr -> peekByteOff hsc_ptr 0) ptr
-{-# LINE 149 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 155 "Graphics/UI/SDL/Events.hsc" #-}
     Event <$> (\hsc_ptr -> peekByteOff hsc_ptr 4) ptr <*> peekEvent evType
-{-# LINE 150 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 156 "Graphics/UI/SDL/Events.hsc" #-}
 
    where
 
@@ -178,76 +184,76 @@ instance Storable Event where
       | isKeyboard e =
           Keyboard <$> case e of
                         768 -> pure KeyDown
-{-# LINE 158 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 164 "Graphics/UI/SDL/Events.hsc" #-}
                         769 -> pure KeyUp
-{-# LINE 159 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 165 "Graphics/UI/SDL/Events.hsc" #-}
                         _ -> error "Unknown key movement when parsing SDL_KeybordEvent"
                    <*> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 161 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 167 "Graphics/UI/SDL/Events.hsc" #-}
                    <*> (uint8Bool <$> (\hsc_ptr -> peekByteOff hsc_ptr 13) ptr)
-{-# LINE 162 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 168 "Graphics/UI/SDL/Events.hsc" #-}
                    <*> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 163 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 169 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isWindow e =
           Window <$> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 166 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 172 "Graphics/UI/SDL/Events.hsc" #-}
                  <*> ((\hsc_ptr -> peekByteOff hsc_ptr 12) ptr >>= peekWindowEvent)
-{-# LINE 167 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 173 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isTextInput e =
           TextInput <$> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 170 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 176 "Graphics/UI/SDL/Events.hsc" #-}
                     <*> peekCString (ptr `plusPtr` (12))
-{-# LINE 171 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 177 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isTextEditing e = pure TextEditing -- TODO
 
       | isMouseMotion e =
           MouseMotion <$> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 176 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
-{-# LINE 177 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 178 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (mkPosition <$> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr
-{-# LINE 179 "Graphics/UI/SDL/Events.hsc" #-}
-                                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 24) ptr)
-{-# LINE 180 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 28) ptr
-{-# LINE 181 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 32) ptr
 {-# LINE 182 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
+{-# LINE 183 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (mouseStateToButtons <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr)
+{-# LINE 184 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (mkPosition <$> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr
+{-# LINE 185 "Graphics/UI/SDL/Events.hsc" #-}
+                                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 24) ptr)
+{-# LINE 186 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 28) ptr
+{-# LINE 187 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 32) ptr
+{-# LINE 188 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isMouseButton e = do
           btnState <- (\hsc_ptr -> peekByteOff hsc_ptr 17) ptr :: IO Word8
-{-# LINE 185 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 191 "Graphics/UI/SDL/Events.hsc" #-}
           MouseButton <$> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 186 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 192 "Graphics/UI/SDL/Events.hsc" #-}
                       <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
-{-# LINE 187 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 193 "Graphics/UI/SDL/Events.hsc" #-}
                       <*> (mkButton <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr)
-{-# LINE 188 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 194 "Graphics/UI/SDL/Events.hsc" #-}
                       <*> return (case btnState of
                                     1 -> Pressed
-{-# LINE 190 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 196 "Graphics/UI/SDL/Events.hsc" #-}
                                     0 -> Released
-{-# LINE 191 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 197 "Graphics/UI/SDL/Events.hsc" #-}
                                     _ -> error "isMouseButton: unhandled mouse button state")
                       <*> (mkPosition <$> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr
-{-# LINE 193 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 199 "Graphics/UI/SDL/Events.hsc" #-}
                                       <*> (\hsc_ptr -> peekByteOff hsc_ptr 24) ptr)
-{-# LINE 194 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 200 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isMouseWheel e =
           MouseWheel <$> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 197 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 203 "Graphics/UI/SDL/Events.hsc" #-}
                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
-{-# LINE 198 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 204 "Graphics/UI/SDL/Events.hsc" #-}
                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 199 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 205 "Graphics/UI/SDL/Events.hsc" #-}
                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr
-{-# LINE 200 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 206 "Graphics/UI/SDL/Events.hsc" #-}
 
       | isJoyAxis e = pure JoyAxis
       | isJoyBall e = pure JoyBall
@@ -256,117 +262,135 @@ instance Storable Event where
       | isJoyDevice e = pure JoyDevice
       | isControllerAxis e = pure ControllerAxis
       | isControllerButton e = pure ControllerButton
-      | isTouchFinger e = 
-          TouchFinger <$> case e of 
+      | isTouchFinger e =
+          TouchFinger <$> case e of
                         1794 -> pure TouchFingerMotion
-{-# LINE 211 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 217 "Graphics/UI/SDL/Events.hsc" #-}
                         1792 -> pure TouchFingerDown
-{-# LINE 212 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 218 "Graphics/UI/SDL/Events.hsc" #-}
                         1793 -> pure TouchFingerUp
-{-# LINE 213 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 219 "Graphics/UI/SDL/Events.hsc" #-}
                         _ -> error "isTouchFinger: unhandled finger constant"
                       <*> (\hsc_ptr -> peekByteOff hsc_ptr 4) ptr
-{-# LINE 215 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
-{-# LINE 216 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 217 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 24) ptr
-{-# LINE 218 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 28) ptr
-{-# LINE 219 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 32) ptr
-{-# LINE 220 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 36) ptr
 {-# LINE 221 "Graphics/UI/SDL/Events.hsc" #-}
-                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 40) ptr
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
 {-# LINE 222 "Graphics/UI/SDL/Events.hsc" #-}
-      
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
+{-# LINE 223 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 24) ptr
+{-# LINE 224 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 28) ptr
+{-# LINE 225 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 32) ptr
+{-# LINE 226 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 36) ptr
+{-# LINE 227 "Graphics/UI/SDL/Events.hsc" #-}
+                      <*> (\hsc_ptr -> peekByteOff hsc_ptr 40) ptr
+{-# LINE 228 "Graphics/UI/SDL/Events.hsc" #-}
+
       | isMultiGesture e = pure MultiGesture
       | isDollarGesture e = pure DollarGesture
+      | isTerminating e = pure Terminating
+      | isLowMemory e = pure LowMemory
+      | isAppWillEnterBackground e = pure AppWillEnterBackground
+      | isAppDidEnterBackground e = pure  AppDidEnterBackground
+      | isAppWillEnterForeground e = pure AppWillEnterForeground
+      | isAppDidEnterForeground e = pure AppDidEnterForeground
       | isDrop e = pure Drop
       | isQuit e = pure Quit
-
       | otherwise = error $ "Unknown event type: " ++ show e
 
     peekWindowEvent :: Word8 -> IO WindowEvent
     peekWindowEvent e = case e of
       1 -> pure Shown
-{-# LINE 233 "Graphics/UI/SDL/Events.hsc" #-}
-      2 -> pure Hidden
-{-# LINE 234 "Graphics/UI/SDL/Events.hsc" #-}
-      3 -> pure Exposed
-{-# LINE 235 "Graphics/UI/SDL/Events.hsc" #-}
-      4 ->
-{-# LINE 236 "Graphics/UI/SDL/Events.hsc" #-}
-        Moved <$> (mkPosition <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 237 "Graphics/UI/SDL/Events.hsc" #-}
-                              <*> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr)
-{-# LINE 238 "Graphics/UI/SDL/Events.hsc" #-}
-      5 ->
-{-# LINE 239 "Graphics/UI/SDL/Events.hsc" #-}
-        Resized <$> (mkSize <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
-{-# LINE 240 "Graphics/UI/SDL/Events.hsc" #-}
-                            <*> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr)
-{-# LINE 241 "Graphics/UI/SDL/Events.hsc" #-}
-      6 -> pure SizeChanged
-{-# LINE 242 "Graphics/UI/SDL/Events.hsc" #-}
-      7 -> pure Minimized
-{-# LINE 243 "Graphics/UI/SDL/Events.hsc" #-}
-      8 -> pure Maximized
 {-# LINE 244 "Graphics/UI/SDL/Events.hsc" #-}
-      9 -> pure Restored
+      2 -> pure Hidden
 {-# LINE 245 "Graphics/UI/SDL/Events.hsc" #-}
-      10 -> pure GainedMouseFocus
+      3 -> pure Exposed
 {-# LINE 246 "Graphics/UI/SDL/Events.hsc" #-}
-      11 -> pure LostMouseFocus
+      4 ->
 {-# LINE 247 "Graphics/UI/SDL/Events.hsc" #-}
-      12 -> pure GainedKeyboardFocus
+        Moved <$> (mkPosition <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
 {-# LINE 248 "Graphics/UI/SDL/Events.hsc" #-}
-      13 -> pure LostKeyboardFocus
+                              <*> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr)
 {-# LINE 249 "Graphics/UI/SDL/Events.hsc" #-}
-      14 -> pure Closing
+      5 ->
 {-# LINE 250 "Graphics/UI/SDL/Events.hsc" #-}
+        Resized <$> (mkSize <$> (\hsc_ptr -> peekByteOff hsc_ptr 16) ptr
+{-# LINE 251 "Graphics/UI/SDL/Events.hsc" #-}
+                            <*> (\hsc_ptr -> peekByteOff hsc_ptr 20) ptr)
+{-# LINE 252 "Graphics/UI/SDL/Events.hsc" #-}
+      6 -> pure SizeChanged
+{-# LINE 253 "Graphics/UI/SDL/Events.hsc" #-}
+      7 -> pure Minimized
+{-# LINE 254 "Graphics/UI/SDL/Events.hsc" #-}
+      8 -> pure Maximized
+{-# LINE 255 "Graphics/UI/SDL/Events.hsc" #-}
+      9 -> pure Restored
+{-# LINE 256 "Graphics/UI/SDL/Events.hsc" #-}
+      10 -> pure GainedMouseFocus
+{-# LINE 257 "Graphics/UI/SDL/Events.hsc" #-}
+      11 -> pure LostMouseFocus
+{-# LINE 258 "Graphics/UI/SDL/Events.hsc" #-}
+      12 -> pure GainedKeyboardFocus
+{-# LINE 259 "Graphics/UI/SDL/Events.hsc" #-}
+      13 -> pure LostKeyboardFocus
+{-# LINE 260 "Graphics/UI/SDL/Events.hsc" #-}
+      14 -> pure Closing
+{-# LINE 261 "Graphics/UI/SDL/Events.hsc" #-}
       unknown -> error $ "Unknown SDL_WINDOWEVENT: " ++ show unknown
 
     isKeyboard = (`elem` [ 769, 768 ])
-{-# LINE 253 "Graphics/UI/SDL/Events.hsc" #-}
-    isWindow = (== 512)
-{-# LINE 254 "Graphics/UI/SDL/Events.hsc" #-}
-    isTextInput = (== 771)
-{-# LINE 255 "Graphics/UI/SDL/Events.hsc" #-}
-    isTextEditing = (== 770)
-{-# LINE 256 "Graphics/UI/SDL/Events.hsc" #-}
-    isMouseMotion = (== 1024)
-{-# LINE 257 "Graphics/UI/SDL/Events.hsc" #-}
-    isMouseButton = (`elem` [1025, 1026])
-{-# LINE 258 "Graphics/UI/SDL/Events.hsc" #-}
-    isMouseWheel = (== 1027)
-{-# LINE 259 "Graphics/UI/SDL/Events.hsc" #-}
-    isJoyAxis = (== 1536)
-{-# LINE 260 "Graphics/UI/SDL/Events.hsc" #-}
-    isJoyBall = (== 1537)
-{-# LINE 261 "Graphics/UI/SDL/Events.hsc" #-}
-    isJoyHat = (== 1538)
-{-# LINE 262 "Graphics/UI/SDL/Events.hsc" #-}
-    isJoyButton = (`elem` [1539, 1540])
-{-# LINE 263 "Graphics/UI/SDL/Events.hsc" #-}
-    isJoyDevice = (`elem` [1541, 1542])
 {-# LINE 264 "Graphics/UI/SDL/Events.hsc" #-}
-    isControllerAxis = (== 1616)
+    isWindow = (== 512)
 {-# LINE 265 "Graphics/UI/SDL/Events.hsc" #-}
-    isControllerButton = (`elem` [1617, 1618])
+    isTextInput = (== 771)
 {-# LINE 266 "Graphics/UI/SDL/Events.hsc" #-}
-    isTouchFinger = (`elem` [ 1794, 1792, 1793])
+    isTextEditing = (== 770)
 {-# LINE 267 "Graphics/UI/SDL/Events.hsc" #-}
-    isMultiGesture = (== 2050)
+    isMouseMotion = (== 1024)
 {-# LINE 268 "Graphics/UI/SDL/Events.hsc" #-}
-    isDollarGesture = (== 2048)
+    isMouseButton = (`elem` [1025, 1026])
 {-# LINE 269 "Graphics/UI/SDL/Events.hsc" #-}
-    isDrop = (== 4096)
+    isMouseWheel = (== 1027)
 {-# LINE 270 "Graphics/UI/SDL/Events.hsc" #-}
-    isQuit = (== 256)
+    isJoyAxis = (== 1536)
 {-# LINE 271 "Graphics/UI/SDL/Events.hsc" #-}
+    isJoyBall = (== 1537)
+{-# LINE 272 "Graphics/UI/SDL/Events.hsc" #-}
+    isJoyHat = (== 1538)
+{-# LINE 273 "Graphics/UI/SDL/Events.hsc" #-}
+    isJoyButton = (`elem` [1539, 1540])
+{-# LINE 274 "Graphics/UI/SDL/Events.hsc" #-}
+    isJoyDevice = (`elem` [1541, 1542])
+{-# LINE 275 "Graphics/UI/SDL/Events.hsc" #-}
+    isControllerAxis = (== 1616)
+{-# LINE 276 "Graphics/UI/SDL/Events.hsc" #-}
+    isControllerButton = (`elem` [1617, 1618])
+{-# LINE 277 "Graphics/UI/SDL/Events.hsc" #-}
+    isTouchFinger = (`elem` [ 1794, 1792, 1793])
+{-# LINE 278 "Graphics/UI/SDL/Events.hsc" #-}
+    isMultiGesture = (== 2050)
+{-# LINE 279 "Graphics/UI/SDL/Events.hsc" #-}
+    isDollarGesture = (== 2048)
+{-# LINE 280 "Graphics/UI/SDL/Events.hsc" #-}
+    isDrop = (== 4096)
+{-# LINE 281 "Graphics/UI/SDL/Events.hsc" #-}
+    isQuit = (== 256)
+{-# LINE 282 "Graphics/UI/SDL/Events.hsc" #-}
+
+    isTerminating            = (== 257)
+{-# LINE 284 "Graphics/UI/SDL/Events.hsc" #-}
+    isLowMemory              = (== 258)
+{-# LINE 285 "Graphics/UI/SDL/Events.hsc" #-}
+    isAppWillEnterBackground = (== 259)
+{-# LINE 286 "Graphics/UI/SDL/Events.hsc" #-}
+    isAppDidEnterBackground  = (== 260)
+{-# LINE 287 "Graphics/UI/SDL/Events.hsc" #-}
+    isAppWillEnterForeground = (== 261)
+{-# LINE 288 "Graphics/UI/SDL/Events.hsc" #-}
+    isAppDidEnterForeground  = (== 262)
+{-# LINE 289 "Graphics/UI/SDL/Events.hsc" #-}
 
     uint8Bool :: Word8 -> Bool
     uint8Bool = (== 0)
@@ -376,16 +400,16 @@ instance Storable Event where
 
 sdlEventType :: EventData -> Word32
 sdlEventType (Keyboard KeyUp _ _ _) = 769
-{-# LINE 280 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 298 "Graphics/UI/SDL/Events.hsc" #-}
 sdlEventType (Keyboard KeyDown _ _ _) = 768
-{-# LINE 281 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 299 "Graphics/UI/SDL/Events.hsc" #-}
 sdlEventType _ = error "sdlEventType: unhandled event data"
 
 sdlKeyState :: KeyMovement -> Word8
 sdlKeyState KeyUp = 0
-{-# LINE 285 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 303 "Graphics/UI/SDL/Events.hsc" #-}
 sdlKeyState KeyDown = 1
-{-# LINE 286 "Graphics/UI/SDL/Events.hsc" #-}
+{-# LINE 304 "Graphics/UI/SDL/Events.hsc" #-}
 
 foreign import ccall "SDL_PollEvent" sdlPollEvent :: Ptr Event -> IO Int
 
@@ -409,11 +433,11 @@ addEventWatch callback = do
   cb <- mkEventFilter $ \_ -> peek >=> void . callback
   sdlAddEventWatch cb nullPtr
 
--- Uint8 SDL_GetMouseState(int *x, int *y);
-foreign import ccall "SDL_GetMouseState" sdlGetMouseState :: Ptr CInt -> Ptr CInt -> IO Word8
-foreign import ccall "SDL_GetRelativeMouseState" sdlGetRelativeMouseState :: Ptr CInt -> Ptr CInt -> IO Word8
+-- Uint32 SDL_GetMouseState(int *x, int *y);
+foreign import ccall "SDL_GetMouseState" sdlGetMouseState :: Ptr CInt -> Ptr CInt -> IO Word32
+foreign import ccall "SDL_GetRelativeMouseState" sdlGetRelativeMouseState :: Ptr CInt -> Ptr CInt -> IO Word32
 
-mousePressed :: Word8 -> MouseButton -> Bool
+mousePressed :: Word32 -> MouseButton -> Bool
 mousePressed mask b = mask .&. (fromIntegral $ fromEnum b) /= 0
 
 -- | Retrieves the current state of the mouse. Returns (X position, Y position, pressed buttons).
@@ -425,12 +449,15 @@ getMouseState = mouseStateGetter sdlGetMouseState
 getRelativeMouseState :: IO (Int, Int, [MouseButton])
 getRelativeMouseState = mouseStateGetter sdlGetRelativeMouseState
 
-mouseStateGetter :: (Ptr CInt -> Ptr CInt -> IO Word8) -> IO  (Int, Int, [MouseButton])
+mouseStateGetter :: (Ptr CInt -> Ptr CInt -> IO Word32) -> IO  (Int, Int, [MouseButton])
 mouseStateGetter getter
   = alloca $ \xPtr ->
     alloca $ \yPtr ->
 
     do ret <- getter xPtr yPtr
        [x, y] <- mapM peek [xPtr, yPtr]
-       return (fromIntegral x, fromIntegral y, filter (mousePressed ret) allButtons)
-    where allButtons = [LeftButton, MiddleButton, RightButton, MouseX1, MouseX2]
+       return (fromIntegral x, fromIntegral y, mouseStateToButtons ret)
+
+mouseStateToButtons :: Word32 -> [MouseButton]
+mouseStateToButtons s = filter (mousePressed s) allButtons
+ where allButtons = [LeftButton, MiddleButton, RightButton, MouseX1, MouseX2]
