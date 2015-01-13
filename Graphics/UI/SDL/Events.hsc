@@ -111,6 +111,10 @@ data EventData
   | AppDidEnterBackground -- TODO
   | AppWillEnterForeground -- TODO
   | AppDidEnterForeground -- TODO
+  | ClipboardUpdate -- TODO
+  | RenderTargetsReset -- TODO
+  | UserEvent -- TODO
+
   | Quit
   deriving (Eq, Show)
 
@@ -235,16 +239,19 @@ instance Storable Event where
                       <*> #{peek SDL_TouchFingerEvent, dy} ptr
                       <*> #{peek SDL_TouchFingerEvent, pressure} ptr
 
-      | isMultiGesture e = pure MultiGesture
-      | isDollarGesture e = pure DollarGesture
-      | isTerminating e = pure Terminating
-      | isLowMemory e = pure LowMemory
+      | isMultiGesture e           = pure MultiGesture
+      | isDollarGesture e          = pure DollarGesture
+      | isTerminating e            = pure Terminating
+      | isLowMemory e              = pure LowMemory
       | isAppWillEnterBackground e = pure AppWillEnterBackground
-      | isAppDidEnterBackground e = pure  AppDidEnterBackground
+      | isAppDidEnterBackground e  = pure  AppDidEnterBackground
       | isAppWillEnterForeground e = pure AppWillEnterForeground
-      | isAppDidEnterForeground e = pure AppDidEnterForeground
-      | isDrop e = pure Drop
-      | isQuit e = pure Quit
+      | isAppDidEnterForeground e  = pure AppDidEnterForeground
+      | isClipboardUpdate e        = pure ClipboardUpdate
+      | isRenderTargetsReset e     = pure RenderTargetsReset
+      | isUserEvent          e     = pure UserEvent
+      | isDrop e                   = pure Drop
+      | isQuit e                   = pure Quit
       | otherwise = error $ "Unknown event type: " ++ show e
 
     peekWindowEvent :: Word8 -> IO WindowEvent
@@ -295,6 +302,10 @@ instance Storable Event where
     isAppDidEnterBackground  = (== #{const SDL_APP_DIDENTERBACKGROUND})
     isAppWillEnterForeground = (== #{const SDL_APP_WILLENTERFOREGROUND})
     isAppDidEnterForeground  = (== #{const SDL_APP_DIDENTERFOREGROUND})
+
+    isClipboardUpdate    = (== #{const SDL_CLIPBOARDUPDATE})
+    isRenderTargetsReset = (== #{const SDL_RENDER_TARGETS_RESET})
+    isUserEvent          = (== #{const SDL_USEREVENT})
 
     uint8Bool :: Word8 -> Bool
     uint8Bool = (== 0)
