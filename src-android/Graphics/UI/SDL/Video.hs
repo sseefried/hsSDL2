@@ -79,6 +79,7 @@ module Graphics.UI.SDL.Video
   , glSetAttribute
   , glSetSwapInterval
   , glGetSwapInterval
+  , SwapInterval(..)
 
     -- * Surfaces
   , surfaceFormat
@@ -141,7 +142,7 @@ withUtf8CString = useAsCString . encodeUtf8 . T.pack
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_CreateWindow"
   sdlCreateWindow :: CString -> CInt -> CInt -> CInt -> CInt -> Word32 -> IO (Ptr WindowStruct)
-{-# LINE 141 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 142 "Graphics/UI/SDL/Video.hsc" #-}
 
 createWindow :: String -> Position -> Size -> [WindowFlag] -> IO Window
 createWindow title (Position x y) (Size w h) flags =
@@ -195,7 +196,7 @@ glGetCurrentWindow =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_GetDrawableSize"
   sdlGlGetDrawableSize :: Ptr WindowStruct -> Ptr Int32 -> Ptr Int32 -> IO ()
-{-# LINE 194 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 195 "Graphics/UI/SDL/Video.hsc" #-}
 
 glGetDrawableSize :: Window -> IO Size
 glGetDrawableSize window = withForeignPtr window $ \cWin ->
@@ -217,7 +218,7 @@ withOpenGL win = bracket (glCreateContext win) glDeleteContext . const
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_ExtensionSupported"
   sdlGlExtensionSupported :: CString -> IO Word32
-{-# LINE 215 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 216 "Graphics/UI/SDL/Video.hsc" #-}
 
 glExtensionSupported :: String -> IO Bool
 glExtensionSupported ext = withCString ext $
@@ -233,7 +234,7 @@ glSwapWindow w = withForeignPtr w sdlGlSwapWindow
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_BindTexture"
   sdlGlBindTexture :: Ptr TextureStruct -> Ptr CFloat -> Ptr CFloat -> IO Int32
-{-# LINE 230 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 231 "Graphics/UI/SDL/Video.hsc" #-}
 
 -- | Bind a texture to the active texture unit in the current OpenGL context.
 glBindTexture :: Texture -> IO ()
@@ -256,7 +257,7 @@ withBoundTexture tex = bracket_ (glBindTexture tex) (glUnbindTexture tex)
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_GetAttribute"
   sdlGlGetAttribute :: Int32 -> Ptr Int32 -> IO Int32
-{-# LINE 252 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 253 "Graphics/UI/SDL/Video.hsc" #-}
 
 data GLAttribute
   = GLRedSize
@@ -285,58 +286,58 @@ data GLAttribute
   | GLContextEGL
 
 sdlGLAttributeToC :: GLAttribute -> Int32
-{-# LINE 280 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLRedSize = 0
 {-# LINE 281 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLGreenSize = 0
+sdlGLAttributeToC GLRedSize = 0
 {-# LINE 282 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLBlueSize = 2
+sdlGLAttributeToC GLGreenSize = 0
 {-# LINE 283 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAlphaSize = 3
+sdlGLAttributeToC GLBlueSize = 2
 {-# LINE 284 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLBufferSize = 4
+sdlGLAttributeToC GLAlphaSize = 3
 {-# LINE 285 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLDoubleBuffer = 5
+sdlGLAttributeToC GLBufferSize = 4
 {-# LINE 286 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLDepthSize = 6
+sdlGLAttributeToC GLDoubleBuffer = 5
 {-# LINE 287 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLStencilSize = 7
+sdlGLAttributeToC GLDepthSize = 6
 {-# LINE 288 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAccumRedSize = 8
+sdlGLAttributeToC GLStencilSize = 7
 {-# LINE 289 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAccumGreenSize = 9
+sdlGLAttributeToC GLAccumRedSize = 8
 {-# LINE 290 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAccumBlueSize = 10
+sdlGLAttributeToC GLAccumGreenSize = 9
 {-# LINE 291 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAccumAlphaSize = 11
+sdlGLAttributeToC GLAccumBlueSize = 10
 {-# LINE 292 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLStereo = 12
+sdlGLAttributeToC GLAccumAlphaSize = 11
 {-# LINE 293 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLMultiSampleBuffers = 13
+sdlGLAttributeToC GLStereo = 12
 {-# LINE 294 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLMultiSampleSamples = 14
+sdlGLAttributeToC GLMultiSampleBuffers = 13
 {-# LINE 295 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLAcceleratedVisual = 15
+sdlGLAttributeToC GLMultiSampleSamples = 14
 {-# LINE 296 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLRetainedBacking = 16
+sdlGLAttributeToC GLAcceleratedVisual = 15
 {-# LINE 297 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLContextMajorVersion = 17
+sdlGLAttributeToC GLRetainedBacking = 16
 {-# LINE 298 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLContextMinorVersion = 18
+sdlGLAttributeToC GLContextMajorVersion = 17
 {-# LINE 299 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLContextFlags = 20
+sdlGLAttributeToC GLContextMinorVersion = 18
 {-# LINE 300 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLContextProfileMask = 21
+sdlGLAttributeToC GLContextFlags = 20
 {-# LINE 301 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLShareWithCurrentContext = 22
+sdlGLAttributeToC GLContextProfileMask = 21
 {-# LINE 302 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLFramebufferSRGBCapable = 23
+sdlGLAttributeToC GLShareWithCurrentContext = 22
 {-# LINE 303 "Graphics/UI/SDL/Video.hsc" #-}
-sdlGLAttributeToC GLContextEGL = 19
+sdlGLAttributeToC GLFramebufferSRGBCapable = 23
 {-# LINE 304 "Graphics/UI/SDL/Video.hsc" #-}
+sdlGLAttributeToC GLContextEGL = 19
+{-# LINE 305 "Graphics/UI/SDL/Video.hsc" #-}
 
 glGetAttribute :: GLAttribute -> IO Int32
-{-# LINE 306 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 307 "Graphics/UI/SDL/Video.hsc" #-}
 glGetAttribute attribute = alloca $ \payloadPtr ->  do
   fatalSDLBool "SDL_GL_GetAttribute" $
     sdlGlGetAttribute (sdlGLAttributeToC attribute) payloadPtr
@@ -345,10 +346,10 @@ glGetAttribute attribute = alloca $ \payloadPtr ->  do
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_SetAttribute"
   sdlGlSetAttribute :: Int32 -> Int32 -> IO Int32
-{-# LINE 314 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 315 "Graphics/UI/SDL/Video.hsc" #-}
 
 glSetAttribute :: GLAttribute -> Int32 -> IO ()
-{-# LINE 316 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 317 "Graphics/UI/SDL/Video.hsc" #-}
 glSetAttribute attribute value = fatalSDLBool "SDL_GL_SetAttribute" $
   sdlGlSetAttribute (sdlGLAttributeToC attribute) value
 
@@ -359,12 +360,12 @@ foreign import ccall unsafe "SDL_GL_ResetAttributes"
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_SetSwapInterval"
   sdlGlSetSwapInterval :: Int32 -> IO Int32
-{-# LINE 326 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 327 "Graphics/UI/SDL/Video.hsc" #-}
 
 data SwapInterval = ImmediateUpdates | SynchronizedUpdates | LateSwapTearing
 
 swapIntervalToC :: SwapInterval -> Int32
-{-# LINE 330 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 331 "Graphics/UI/SDL/Video.hsc" #-}
 swapIntervalToC ImmediateUpdates = 0
 swapIntervalToC SynchronizedUpdates = 1
 swapIntervalToC LateSwapTearing = -1
@@ -376,10 +377,10 @@ glSetSwapInterval swapInterval = fatalSDLBool "SDL_GL_SetSwapInterval" $
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_SetSwapInterval"
   sdlGlGetSwapInterval :: IO Int32
-{-# LINE 341 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 342 "Graphics/UI/SDL/Video.hsc" #-}
 
 swapIntervalFromC :: Int32 -> SwapInterval
-{-# LINE 343 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 344 "Graphics/UI/SDL/Video.hsc" #-}
 swapIntervalFromC 0 = ImmediateUpdates
 swapIntervalFromC 1 = SynchronizedUpdates
 swapIntervalFromC (-1) = LateSwapTearing
@@ -625,54 +626,54 @@ mapRGBA p r g b a = withForeignPtr p $ \cp -> sdlMapRGBA cp r g b a
 surfaceFormat :: Surface -> IO PixelFormat
 surfaceFormat s =
   withForeignPtr s $ \cs ->
-  (\hsc_ptr -> peekByteOff hsc_ptr 4) cs >>= newForeignPtr_
-{-# LINE 589 "Graphics/UI/SDL/Video.hsc" #-}
+  (\hsc_ptr -> peekByteOff hsc_ptr 8) cs >>= newForeignPtr_
+{-# LINE 590 "Graphics/UI/SDL/Video.hsc" #-}
 
 --------------------------------------------------------------------------------
 data DisplayMode = DisplayMode { displayModeFormat :: PixelFormatEnum
                                , displayModeWidth  :: Int32
-{-# LINE 593 "Graphics/UI/SDL/Video.hsc" #-}
-                               , displayModeHeight :: Int32
 {-# LINE 594 "Graphics/UI/SDL/Video.hsc" #-}
-                               , displayModeRefreshRate :: Int32
+                               , displayModeHeight :: Int32
 {-# LINE 595 "Graphics/UI/SDL/Video.hsc" #-}
+                               , displayModeRefreshRate :: Int32
+{-# LINE 596 "Graphics/UI/SDL/Video.hsc" #-}
                                } deriving (Eq, Show)
 
 instance Storable DisplayMode where
-  sizeOf = const (20)
-{-# LINE 599 "Graphics/UI/SDL/Video.hsc" #-}
+  sizeOf = const (24)
+{-# LINE 600 "Graphics/UI/SDL/Video.hsc" #-}
 
   alignment = const 4
 
   poke ptr DisplayMode{..} = do
     (\hsc_ptr -> pokeByteOff hsc_ptr 0) ptr (pixelFormatEnumToC displayModeFormat)
-{-# LINE 604 "Graphics/UI/SDL/Video.hsc" #-}
-    (\hsc_ptr -> pokeByteOff hsc_ptr 4) ptr displayModeWidth
 {-# LINE 605 "Graphics/UI/SDL/Video.hsc" #-}
-    (\hsc_ptr -> pokeByteOff hsc_ptr 8) ptr displayModeHeight
+    (\hsc_ptr -> pokeByteOff hsc_ptr 4) ptr displayModeWidth
 {-# LINE 606 "Graphics/UI/SDL/Video.hsc" #-}
-    (\hsc_ptr -> pokeByteOff hsc_ptr 12) ptr displayModeRefreshRate
+    (\hsc_ptr -> pokeByteOff hsc_ptr 8) ptr displayModeHeight
 {-# LINE 607 "Graphics/UI/SDL/Video.hsc" #-}
-    (\hsc_ptr -> pokeByteOff hsc_ptr 16) ptr nullPtr
+    (\hsc_ptr -> pokeByteOff hsc_ptr 12) ptr displayModeRefreshRate
 {-# LINE 608 "Graphics/UI/SDL/Video.hsc" #-}
+    (\hsc_ptr -> pokeByteOff hsc_ptr 16) ptr nullPtr
+{-# LINE 609 "Graphics/UI/SDL/Video.hsc" #-}
 
   peek ptr = DisplayMode
     <$> (pixelFormatEnumFromC <$> (\hsc_ptr -> peekByteOff hsc_ptr 0) ptr)
-{-# LINE 611 "Graphics/UI/SDL/Video.hsc" #-}
-    <*> (\hsc_ptr -> peekByteOff hsc_ptr 4) ptr
 {-# LINE 612 "Graphics/UI/SDL/Video.hsc" #-}
-    <*> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
+    <*> (\hsc_ptr -> peekByteOff hsc_ptr 4) ptr
 {-# LINE 613 "Graphics/UI/SDL/Video.hsc" #-}
-    <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
+    <*> (\hsc_ptr -> peekByteOff hsc_ptr 8) ptr
 {-# LINE 614 "Graphics/UI/SDL/Video.hsc" #-}
+    <*> (\hsc_ptr -> peekByteOff hsc_ptr 12) ptr
+{-# LINE 615 "Graphics/UI/SDL/Video.hsc" #-}
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetDisplayMode"
   sdlGetDisplayMode :: Int32 -> Int32 -> Ptr DisplayMode -> IO Int32
-{-# LINE 618 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 619 "Graphics/UI/SDL/Video.hsc" #-}
 
 getDisplayMode :: Int32 -> Int32 -> IO DisplayMode
-{-# LINE 620 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 621 "Graphics/UI/SDL/Video.hsc" #-}
 getDisplayMode d m = alloca $ \displayModePtr -> do
   fatalSDLBool "SDL_GetDisplayMode" (sdlGetDisplayMode d m displayModePtr)
   peek displayModePtr
@@ -680,10 +681,10 @@ getDisplayMode d m = alloca $ \displayModePtr -> do
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetCurrentDisplayMode"
   sdlGetCurrentDisplayMode :: Int32 -> Ptr DisplayMode -> IO Int32
-{-# LINE 627 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 628 "Graphics/UI/SDL/Video.hsc" #-}
 
 getCurrentDisplayMode :: Int32 -> IO DisplayMode
-{-# LINE 629 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 630 "Graphics/UI/SDL/Video.hsc" #-}
 getCurrentDisplayMode d = alloca $ \displayModePtr -> do
   fatalSDLBool "SDL_GetCurrentDisplayMode" (sdlGetCurrentDisplayMode d displayModePtr)
   peek displayModePtr
@@ -691,10 +692,10 @@ getCurrentDisplayMode d = alloca $ \displayModePtr -> do
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetDesktopDisplayMode"
   sdlGetDesktopDisplayMode :: Int32 -> Ptr DisplayMode -> IO Int32
-{-# LINE 636 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 637 "Graphics/UI/SDL/Video.hsc" #-}
 
 getDesktopDisplayMode :: Int32 -> IO DisplayMode
-{-# LINE 638 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 639 "Graphics/UI/SDL/Video.hsc" #-}
 getDesktopDisplayMode d = alloca $ \displayModePtr -> do
   fatalSDLBool "SDL_GetDesktopDisplayMode" (sdlGetDesktopDisplayMode d displayModePtr)
   peek displayModePtr
@@ -702,10 +703,10 @@ getDesktopDisplayMode d = alloca $ \displayModePtr -> do
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetClosestDisplayMode"
   sdlGetClosestDisplayMode :: Int32 -> Ptr DisplayMode -> Ptr DisplayMode -> IO (Ptr DisplayMode)
-{-# LINE 645 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 646 "Graphics/UI/SDL/Video.hsc" #-}
 
 getClosestDisplayMode :: Int32 -> DisplayMode -> IO (Maybe DisplayMode)
-{-# LINE 647 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 648 "Graphics/UI/SDL/Video.hsc" #-}
 getClosestDisplayMode d mode =
   with mode $ \modePtr ->
   alloca $ \closestPtr -> do
@@ -715,7 +716,7 @@ getClosestDisplayMode d mode =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetWindowDisplayMode"
   sdlGetWindowDisplayMode :: Ptr WindowStruct -> Ptr DisplayMode -> IO Int32
-{-# LINE 656 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 657 "Graphics/UI/SDL/Video.hsc" #-}
 
 getWindowDisplayMode :: Window -> IO DisplayMode
 getWindowDisplayMode win =
@@ -727,7 +728,7 @@ getWindowDisplayMode win =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_SetWindowDisplayMode"
   sdlSetWindowDisplayMode :: Ptr WindowStruct -> Ptr DisplayMode -> IO Int32
-{-# LINE 667 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 668 "Graphics/UI/SDL/Video.hsc" #-}
 
 setWindowDisplayMode :: Window -> Maybe DisplayMode -> IO ()
 setWindowDisplayMode win mode =
@@ -738,7 +739,7 @@ setWindowDisplayMode win mode =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetWindowDisplayIndex"
   sdlGetWindowDisplayIndex :: Ptr WindowStruct -> IO Int32
-{-# LINE 677 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 678 "Graphics/UI/SDL/Video.hsc" #-}
 
 getWindowDisplayIndex :: Window -> IO Int
 getWindowDisplayIndex win =
@@ -749,7 +750,7 @@ getWindowDisplayIndex win =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetWindowID"
   sdlGetWindowID :: Ptr WindowStruct -> IO Word32
-{-# LINE 687 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 688 "Graphics/UI/SDL/Video.hsc" #-}
 
 getWindowID :: Window -> IO WindowID
 getWindowID win =
@@ -758,7 +759,7 @@ getWindowID win =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetWindowFromID"
   sdlGetWindowFromID :: Word32 -> IO (Ptr WindowStruct)
-{-# LINE 695 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 696 "Graphics/UI/SDL/Video.hsc" #-}
 
 getWindowFromID :: WindowID -> IO Window
 getWindowFromID wid = do
@@ -768,21 +769,21 @@ getWindowFromID wid = do
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetDisplayName"
   sdlGetDisplayName :: Int32 -> IO CString
-{-# LINE 704 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 705 "Graphics/UI/SDL/Video.hsc" #-}
 
 getDisplayName :: Int32 -> IO String
-{-# LINE 706 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 707 "Graphics/UI/SDL/Video.hsc" #-}
 getDisplayName i =
   fatalSDLNull "SDL_GetDisplayName" (sdlGetDisplayName i) >>= peekCString
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetNumDisplayModes"
   getNumDisplayModes :: Int32 -> IO Int32
-{-# LINE 712 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 713 "Graphics/UI/SDL/Video.hsc" #-}
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetNumVideoDisplays"
   getNumVideoDisplays :: IO Int32
-{-# LINE 715 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 716 "Graphics/UI/SDL/Video.hsc" #-}
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetCurrentVideoDriver"
@@ -794,7 +795,7 @@ getCurrentVideoDriver = sdlGetCurrentVideoDriver >>= peekCString
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetDisplayBounds"
   sdlGetDisplayBounds :: Int32 -> Ptr Rect -> IO Int32
-{-# LINE 726 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 727 "Graphics/UI/SDL/Video.hsc" #-}
 
 getDisplayBounds :: Int -> IO Rect
 getDisplayBounds index =
@@ -805,22 +806,22 @@ getDisplayBounds index =
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetNumVideoDrivers"
   getNumVideoDrivers :: IO Int32
-{-# LINE 736 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 737 "Graphics/UI/SDL/Video.hsc" #-}
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetVideoDriver"
   sdlGetVideoDriver :: Int32 -> IO CString
-{-# LINE 740 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 741 "Graphics/UI/SDL/Video.hsc" #-}
 
 getVideoDriver :: Int32 -> IO String
-{-# LINE 742 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 743 "Graphics/UI/SDL/Video.hsc" #-}
 getVideoDriver =
   fatalSDLNull "SDL_GetVideoDriver" . sdlGetVideoDriver >=> peekCString
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GetWindowFlags"
   sdlGetWindowFlags :: Ptr WindowStruct -> IO Word32
-{-# LINE 748 "Graphics/UI/SDL/Video.hsc" #-}
+{-# LINE 749 "Graphics/UI/SDL/Video.hsc" #-}
 
 getWindowFlags :: Window -> IO [WindowFlag]
 getWindowFlags w = withForeignPtr w $
