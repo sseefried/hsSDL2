@@ -76,6 +76,12 @@ module Graphics.UI.SDL.Video
   , glSetAttribute
   , glSetSwapInterval
   , glGetSwapInterval
+    -- * some more constants
+  , glContextProfileCore
+  , glContextProfileCompatibility
+  , glContextProfileES
+
+
   , SwapInterval(..)
 
     -- * Surfaces
@@ -308,6 +314,12 @@ glGetAttribute attribute = alloca $ \payloadPtr ->  do
   fatalSDLBool "SDL_GL_GetAttribute" $
     sdlGlGetAttribute (sdlGLAttributeToC attribute) payloadPtr
   peek payloadPtr
+
+--------------------------------------------------------------------------------
+glContextProfileCore, glContextProfileCompatibility, glContextProfileES :: #{type int}
+glContextProfileCore = #{const SDL_GL_CONTEXT_PROFILE_CORE}
+glContextProfileCompatibility = #{const SDL_GL_CONTEXT_PROFILE_COMPATIBILITY}
+glContextProfileES = #{const SDL_GL_CONTEXT_PROFILE_ES}
 
 --------------------------------------------------------------------------------
 foreign import ccall unsafe "SDL_GL_SetAttribute"
