@@ -644,26 +644,26 @@ toKeymod #{const KMOD_MODE} = KeymodMode
 toKeymod #{const KMOD_RESERVED} = KeymodReserved
 toKeymod _ = error "unhandled keymod"
 
-foreign import ccall unsafe "SDL_GetKeyboardFocus"
+foreign import ccall safe "SDL_GetKeyboardFocus"
   sdlGetKeyboardFocus :: IO (Ptr WindowStruct)
 
 getKeyboardFocus :: IO Window
 getKeyboardFocus =
   sdlGetKeyboardFocus >>= mkFinalizedWindow
 
-foreign import ccall unsafe "SDL_GetModState"
+foreign import ccall safe "SDL_GetModState"
   sdlGetModState :: IO #{type SDL_Keymod}
 
 getModState :: IO Keymod
 getModState = sdlGetModState >>= return . toKeymod
 
-foreign import ccall unsafe "SDL_SetModState"
+foreign import ccall safe "SDL_SetModState"
   sdlSetModState :: #{type SDL_Keymod} -> IO ()
 
 setModState :: Keymod -> IO ()
 setModState keymod = sdlSetModState $ fromKeymod keymod
 
-foreign import ccall unsafe "SDL_GetKeyFromScancode"
+foreign import ccall safe "SDL_GetKeyFromScancode"
   sdlGetKeyFromScancode :: #{type SDL_Scancode} -> IO #{type SDL_Keycode}
 
 getKeyFromScancode :: Scancode -> IO Keycode
@@ -671,7 +671,7 @@ getKeyFromScancode sc =
   let sc' = fromIntegral $ fromEnum sc
   in toEnum . fromIntegral <$> sdlGetKeyFromScancode sc'
 
-foreign import ccall unsafe "SDL_GetScancodeFromKey"
+foreign import ccall safe "SDL_GetScancodeFromKey"
   sdlGetScancodeFromKey :: #{type SDL_Keycode} -> IO #{type SDL_Scancode}
 
 getScancodeFromKey :: Keycode -> IO Scancode
@@ -679,7 +679,7 @@ getScancodeFromKey kc =
   let kc' = fromIntegral $ fromEnum kc
   in toEnum . fromIntegral <$> sdlGetScancodeFromKey kc'
 
-foreign import ccall unsafe "SDL_GetScancodeName"
+foreign import ccall safe "SDL_GetScancodeName"
   sdlGetScancodeName :: #{type SDL_Scancode} -> IO CString
 
 getScancodeName :: Scancode -> IO String
@@ -687,7 +687,7 @@ getScancodeName sc =
   let sc' = fromIntegral $ fromEnum sc
   in sdlGetScancodeName sc' >>= peekCString
 
-foreign import ccall unsafe "SDL_GetScancodeFromName"
+foreign import ccall safe "SDL_GetScancodeFromName"
   sdlGetScancodeFromName :: CString -> IO #{type SDL_Scancode}
 
 getScancodeFromName :: String -> IO Scancode
@@ -695,7 +695,7 @@ getScancodeFromName name =
   withCString name $ \name' ->
     toEnum . fromIntegral <$> sdlGetScancodeFromName name'
 
-foreign import ccall unsafe "SDL_GetKeyName"
+foreign import ccall safe "SDL_GetKeyName"
   sdlGetKeyName :: #{type SDL_Keycode} -> IO CString
 
 getKeyName :: Keycode -> IO String
@@ -703,7 +703,7 @@ getKeyName kc =
   let kc' = fromIntegral $ fromEnum kc
   in sdlGetKeyName kc' >>= peekCString
 
-foreign import ccall unsafe "SDL_GetKeyFromName"
+foreign import ccall safe "SDL_GetKeyFromName"
   sdlGetKeyFromName :: CString -> IO #{type SDL_Keycode}
 
 getKeyFromName :: String -> IO Keycode
@@ -711,31 +711,31 @@ getKeyFromName name =
   withCString name $ \name' ->
     toEnum . fromIntegral <$> sdlGetKeyFromName name'
 
-foreign import ccall unsafe "SDL_StartTextInput"
+foreign import ccall safe "SDL_StartTextInput"
   startTextInput :: IO ()
 
-foreign import ccall unsafe "SDL_IsTextInputActive"
+foreign import ccall safe "SDL_IsTextInputActive"
   sdlIsTextInputActive :: IO #{type SDL_bool}
 
 isTextInputActive :: IO Bool
 isTextInputActive = sdlBoolToBool <$> sdlIsTextInputActive
 
-foreign import ccall unsafe "SDL_StopTextInput"
+foreign import ccall safe "SDL_StopTextInput"
   stopTextInput :: IO ()
 
-foreign import ccall unsafe "SDL_SetTextInputRect"
+foreign import ccall safe "SDL_SetTextInputRect"
   sdlSetTextInputRect :: Ptr Rect -> IO ()
 
 setTextInputRect :: Rect -> IO ()
 setTextInputRect = flip with sdlSetTextInputRect
 
-foreign import ccall unsafe "SDL_HasScreenKeyboardSupport"
+foreign import ccall safe "SDL_HasScreenKeyboardSupport"
   sdlHasScreenKeyboardSupport :: IO #{type SDL_bool}
 
 hasScreenKeyboardSupport :: IO Bool
 hasScreenKeyboardSupport = sdlBoolToBool <$> sdlHasScreenKeyboardSupport
 
-foreign import ccall unsafe "SDL_IsScreenKeyboardShown"
+foreign import ccall safe "SDL_IsScreenKeyboardShown"
   sdlIsScreenKeyboardShown :: Ptr WindowStruct -> IO #{type SDL_bool}
 
 isScreenKeyboardShown :: Window -> IO Bool

@@ -27,7 +27,7 @@ import qualified Data.Vector.Storable as V
 import qualified Graphics.UI.SDL.RWOps as RWOps
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_FillRect"
+foreign import ccall safe "SDL_FillRect"
   sdlFillRect :: Ptr SurfaceStruct -> Ptr Rect -> #{type Uint32} -> IO #{type int}
 
 fillRect :: Surface -> Rect -> Color -> IO ()
@@ -37,7 +37,7 @@ fillRect s r color =
     colorToInt color >>= fatalSDLBool "SDL_FillRect" . sdlFillRect cS cR
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_FillRects"
+foreign import ccall safe "SDL_FillRects"
   sdlFillRects :: Ptr SurfaceStruct -> Ptr Rect -> #{type int} -> #{type Uint32} -> IO #{type int}
 
 fillRects :: Surface -> Vector Rect -> Color -> IO ()
@@ -53,21 +53,21 @@ colorToInt color = alloca $ \colorPtr ->
   poke (castPtr colorPtr) color >> peek colorPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_UnlockSurface"
+foreign import ccall safe "SDL_UnlockSurface"
   sdlUnlockSurface :: Ptr SurfaceStruct -> IO ()
 
 unlockSurface :: Surface -> IO ()
 unlockSurface s = withForeignPtr s sdlUnlockSurface
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LockSurface"
+foreign import ccall safe "SDL_LockSurface"
   sdlLockSurface :: Ptr SurfaceStruct -> IO ()
 
 lockSurface :: Surface -> IO ()
 lockSurface s = withForeignPtr s sdlLockSurface
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_CreateRGBSurface"
+foreign import ccall safe "SDL_CreateRGBSurface"
   sdlCreateRGBSurface :: #{type Uint32} -> #{type int} -> #{type int} -> #{type int}
                       -> #{type Uint32} -> #{type Uint32} -> #{type Uint32}
                       -> #{type Uint32} -> IO (Ptr SurfaceStruct)
@@ -80,7 +80,7 @@ createRGBSurface w h depth rMask gMask bMask aMask =
     >>= mkFinalizedSurface
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LoadBMP_RW"
+foreign import ccall safe "SDL_LoadBMP_RW"
   sdlLoadBMP :: Ptr RWopsStruct -> CInt -> IO (Ptr SurfaceStruct)
 
 -- TODO Decide if this should be partial or return Maybe/Either
@@ -98,7 +98,7 @@ freeSurface :: Surface -> IO ()
 freeSurface = finalizeForeignPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetColorKey"
+foreign import ccall safe "SDL_SetColorKey"
   sdlSetColorKey :: Ptr SurfaceStruct -> CInt -> Word32 -> IO #{type int}
 
 setColorKey :: Surface -> Bool -> Word32 -> IO ()
@@ -107,7 +107,7 @@ setColorKey s enabled pixel = withForeignPtr s $ \cs ->
     sdlSetColorKey cs (if enabled then 1 else 0) pixel
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetSurfaceAlphaMod"
+foreign import ccall safe "SDL_SetSurfaceAlphaMod"
   sdlSetSurfaceAlphaMod :: Ptr SurfaceStruct -> #{type Uint8} -> IO #{type int}
 
 setSurfaceAlphaMod :: Surface -> #{type Uint8} -> IO ()
@@ -115,7 +115,7 @@ setSurfaceAlphaMod s alphaMod = withForeignPtr s $ \cS ->
   fatalSDLBool "SDL_SetSurfaceAlphaMod" $ sdlSetSurfaceAlphaMod cS alphaMod
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetSurfaceAlphaMod"
+foreign import ccall safe "SDL_GetSurfaceAlphaMod"
   sdlGetSurfaceAlphaMod :: Ptr SurfaceStruct -> Ptr #{type Uint8} -> IO #{type int}
 
 getSurfaceAlphaMod :: Surface -> IO #{type Uint8}
@@ -128,10 +128,10 @@ getSurfaceAlphaMod s =
 --------------------------------------------------------------------------------
 type SDLBlitF = Ptr SurfaceStruct -> Ptr Rect -> Ptr SurfaceStruct -> Ptr Rect -> IO #{type int}
 
-foreign import ccall unsafe "SDL_UpperBlit"
+foreign import ccall safe "SDL_UpperBlit"
   sdlUpperBlit :: SDLBlitF
 
-foreign import ccall unsafe "SDL_UpperBlitScaled"
+foreign import ccall safe "SDL_UpperBlitScaled"
   sdlUpperBlitScaled :: SDLBlitF
 
 -- mirror the defines in SDL_surface.h

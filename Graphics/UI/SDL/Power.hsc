@@ -31,7 +31,7 @@ data PowerInfo = PowerInfo { powerInfoState :: !PowerState
                            , powerInfoPercentLeft :: !(Maybe #{type int})
                            }
 
-foreign import ccall unsafe "SDL_GetPowerInfo"
+foreign import ccall safe "SDL_GetPowerInfo"
   sdlGetPowerInfo :: Ptr #{type int} -> Ptr #{type int} -> IO #{type SDL_PowerState}
 
 getPowerInfo :: IO PowerInfo

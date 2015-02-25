@@ -36,7 +36,7 @@ import Graphics.UI.SDL.Error
 import Graphics.UI.SDL.Utilities
 
 
-foreign import ccall unsafe "SDL_CreateColorCursor"
+foreign import ccall safe "SDL_CreateColorCursor"
   sdlCreateColorCursor :: Ptr SurfaceStruct -> #{type int} -> #{type int} -> IO (Ptr CursorStruct)
 
 createColorCursor :: Surface -> #{type int} -> #{type int} -> IO (Ptr CursorStruct)
@@ -61,43 +61,43 @@ newtype SystemCursor = SystemCursor { unwrapSystemCursor :: #{type int} }
 , numSystemCursors      = SDL_NUM_SYSTEM_CURSORS
 }
 
-foreign import ccall unsafe "SDL_CreateSystemCursor"
+foreign import ccall safe "SDL_CreateSystemCursor"
   sdlCreateSystemCursor :: #{type int}-> IO (Ptr CursorStruct)
 
 createSystemCursor :: SystemCursor -> IO (Ptr CursorStruct)
 createSystemCursor sc =
   fatalSDLNull "SDL_CreateSystemCursor" $ sdlCreateSystemCursor (unwrapSystemCursor sc)
 
-foreign import ccall unsafe "SDL_FreeCursor"
+foreign import ccall safe "SDL_FreeCursor"
   freeCursor :: Ptr CursorStruct -> IO ()
 
-foreign import ccall unsafe "SDL_GetCursor"
+foreign import ccall safe "SDL_GetCursor"
   sdlGetCursor :: IO (Ptr CursorStruct)
 
 getCursor :: IO (Ptr CursorStruct)
 getCursor =
   fatalSDLNull "SDL_GetCursor" $ sdlGetCursor
 
-foreign import ccall unsafe "SDL_GetDefaultCursor"
+foreign import ccall safe "SDL_GetDefaultCursor"
   sdlGetDefaultCursor :: IO (Ptr CursorStruct)
 
 getDefaultCursor :: IO (Ptr CursorStruct)
 getDefaultCursor =
   fatalSDLNull "SDL_GetDefaultCursor" sdlGetDefaultCursor
 
-foreign import ccall unsafe "SDL_GetMouseFocus"
+foreign import ccall safe "SDL_GetMouseFocus"
   getMouseFocus :: IO (Ptr WindowStruct)
 
-foreign import ccall unsafe "SDL_GetRelativeMouseMode"
+foreign import ccall safe "SDL_GetRelativeMouseMode"
   sdlGetRelativeMouseMode :: IO SDL_bool
 
 getRelativeMouseMode :: IO Bool
 getRelativeMouseMode = fmap sdlBoolToBool sdlGetRelativeMouseMode
 
-foreign import ccall unsafe "SDL_SetCursor"
+foreign import ccall safe "SDL_SetCursor"
   setCursor :: Ptr CursorStruct -> IO ()
 
-foreign import ccall unsafe "SDL_SetRelativeMouseMode"
+foreign import ccall safe "SDL_SetRelativeMouseMode"
   sdlSetRelativeMouseMode :: SDL_bool -> IO #{type int}
 
 setRelativeMouseMode :: Bool -> IO ()
@@ -111,7 +111,7 @@ data CursorToggle
   | Query
   deriving (Eq, Show)
 
-foreign import ccall unsafe "SDL_ShowCursor"
+foreign import ccall safe "SDL_ShowCursor"
   sdlShowCursor :: #{type int} -> IO #{type int}
 
 showCursor :: CursorToggle -> IO CursorToggle
@@ -126,6 +126,6 @@ showCursor curshow = do
         cursorToggleToC Hide  = 0
         cursorToggleToC Query = -1
 
-foreign import ccall unsafe "SDL_WarpMouseInWindow"
+foreign import ccall safe "SDL_WarpMouseInWindow"
   warpMouseInWindow :: Ptr WindowStruct -> #{type int} -> #{type int} -> IO ()
 

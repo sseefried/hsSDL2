@@ -143,7 +143,7 @@ withUtf8CString :: String -> (CString -> IO a) -> IO a
 withUtf8CString = useAsCString . encodeUtf8 . T.pack
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_CreateWindow"
+foreign import ccall safe "SDL_CreateWindow"
   sdlCreateWindow :: CString -> CInt -> CInt -> CInt -> CInt -> #{type Uint32} -> IO (Ptr WindowStruct)
 
 createWindow :: String -> Position -> Size -> [WindowFlag] -> IO Window
@@ -156,7 +156,7 @@ createWindow title (Position x y) (Size w h) flags =
     mkFinalizedWindow window
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_CreateWindowFrom"
+foreign import ccall safe "SDL_CreateWindowFrom"
   sdlCreateWindowFrom :: Ptr a -> IO (Ptr WindowStruct)
 
 createWindowFrom :: Ptr a -> IO Window
@@ -171,7 +171,7 @@ destroyWindow :: Window -> IO ()
 destroyWindow = finalizeForeignPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_CreateContext"
+foreign import ccall safe "SDL_GL_CreateContext"
   sdlGlCreateContext :: Ptr WindowStruct -> IO (Ptr GLContextStruct)
 
 glCreateContext :: Window -> IO GLContext
@@ -180,7 +180,7 @@ glCreateContext w = withForeignPtr w $
     newForeignPtr sdlGlDeleteContext_finalizer
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_GetCurrentContext"
+foreign import ccall safe "SDL_GL_GetCurrentContext"
   sdlGlGetCurrentContext :: IO (Ptr GLContextStruct)
 
 glGetCurrentContext :: IO GLContext
@@ -188,7 +188,7 @@ glGetCurrentContext =
   fatalSDLNull "SDL_GL_GetCurrentContext" sdlGlGetCurrentContext >>= newForeignPtr_
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_GetCurrentWindow"
+foreign import ccall safe "SDL_GL_GetCurrentWindow"
   sdlGlGetCurrentWindow :: IO (Ptr WindowStruct)
 
 glGetCurrentWindow :: IO Window
@@ -196,7 +196,7 @@ glGetCurrentWindow =
   fatalSDLNull "SDL_GL_GetCurrentWindow" sdlGlGetCurrentWindow >>= newForeignPtr_
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_GetDrawableSize"
+foreign import ccall safe "SDL_GL_GetDrawableSize"
   sdlGlGetDrawableSize :: Ptr WindowStruct -> Ptr #{type int} -> Ptr #{type int} -> IO ()
 
 glGetDrawableSize :: Window -> IO Size
@@ -206,7 +206,7 @@ glGetDrawableSize window = withForeignPtr window $ \cWin ->
     Size <$> (fromIntegral <$> peek wPtr) <*> (fromIntegral <$> peek hPtr)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "&SDL_GL_DeleteContext"
+foreign import ccall safe "&SDL_GL_DeleteContext"
   sdlGlDeleteContext_finalizer :: FunPtr (Ptr GLContextStruct -> IO ())
 
 glDeleteContext :: GLContext -> IO ()
@@ -217,7 +217,7 @@ withOpenGL :: Window -> IO a -> IO a
 withOpenGL win = bracket (glCreateContext win) glDeleteContext . const
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_ExtensionSupported"
+foreign import ccall safe "SDL_GL_ExtensionSupported"
   sdlGlExtensionSupported :: CString -> IO #{type SDL_bool}
 
 glExtensionSupported :: String -> IO Bool
@@ -225,14 +225,14 @@ glExtensionSupported ext = withCString ext $
   fmap sdlBoolToBool . sdlGlExtensionSupported
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_SwapWindow"
+foreign import ccall safe "SDL_GL_SwapWindow"
   sdlGlSwapWindow :: Ptr WindowStruct -> IO ()
 
 glSwapWindow :: Window -> IO ()
 glSwapWindow w = withForeignPtr w sdlGlSwapWindow
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_BindTexture"
+foreign import ccall safe "SDL_GL_BindTexture"
   sdlGlBindTexture :: Ptr TextureStruct -> Ptr CFloat -> Ptr CFloat -> IO #{type int}
 
 -- | Bind a texture to the active texture unit in the current OpenGL context.
@@ -241,7 +241,7 @@ glBindTexture tex = void $ withForeignPtr tex $ \texp ->
   fatalSDLBool "SDL_GL_BindTexture" $ sdlGlBindTexture texp nullPtr nullPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_UnbindTexture"
+foreign import ccall safe "SDL_GL_UnbindTexture"
   sdlGlUnbindTexture :: Ptr TextureStruct -> IO CInt
 
 -- | Unbind a texture from the current OpenGL context.
@@ -254,7 +254,7 @@ withBoundTexture :: Texture -> IO a -> IO a
 withBoundTexture tex = bracket_ (glBindTexture tex) (glUnbindTexture tex)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_GetAttribute"
+foreign import ccall safe "SDL_GL_GetAttribute"
   sdlGlGetAttribute :: #{type int} -> Ptr #{type int} -> IO #{type int}
 
 data GLAttribute
@@ -322,7 +322,7 @@ glContextProfileCompatibility = #{const SDL_GL_CONTEXT_PROFILE_COMPATIBILITY}
 glContextProfileES = #{const SDL_GL_CONTEXT_PROFILE_ES}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_SetAttribute"
+foreign import ccall safe "SDL_GL_SetAttribute"
   sdlGlSetAttribute :: #{type int} -> #{type int} -> IO #{type int}
 
 glSetAttribute :: GLAttribute -> #{type int} -> IO ()
@@ -330,11 +330,11 @@ glSetAttribute attribute value = fatalSDLBool "SDL_GL_SetAttribute" $
   sdlGlSetAttribute (sdlGLAttributeToC attribute) value
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_ResetAttributes"
+foreign import ccall safe "SDL_GL_ResetAttributes"
   glResetAttributes :: IO ()
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_SetSwapInterval"
+foreign import ccall safe "SDL_GL_SetSwapInterval"
   sdlGlSetSwapInterval :: #{type int} -> IO #{type int}
 
 data SwapInterval = ImmediateUpdates | SynchronizedUpdates | LateSwapTearing
@@ -349,7 +349,7 @@ glSetSwapInterval swapInterval = fatalSDLBool "SDL_GL_SetSwapInterval" $
   sdlGlSetSwapInterval (swapIntervalToC swapInterval)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GL_SetSwapInterval"
+foreign import ccall safe "SDL_GL_SetSwapInterval"
   sdlGlGetSwapInterval :: IO #{type int}
 
 swapIntervalFromC :: #{type int} -> SwapInterval
@@ -363,61 +363,61 @@ glGetSwapInterval = swapIntervalFromC <$> sdlGlGetSwapInterval
 
 --------------------------------------------------------------------------------
 -- void SDL_DisableScreenSaver(void)
-foreign import ccall unsafe "SDL_DisableScreenSaver"
+foreign import ccall safe "SDL_DisableScreenSaver"
   disableScreenSaver :: IO ()
 
 -- void SDL_EnableScreenSaver(void)
-foreign import ccall unsafe "SDL_EnableScreenSaver"
+foreign import ccall safe "SDL_EnableScreenSaver"
   enableScreenSaver :: IO ()
 
 withoutScreenSaver :: IO a -> IO a
 withoutScreenSaver = bracket_ disableScreenSaver enableScreenSaver
 
 -- SDL_bool SDL_IsScreenSaverEnabled(void)
-foreign import ccall unsafe "SDL_IsScreenSaverEnabled"
+foreign import ccall safe "SDL_IsScreenSaverEnabled"
   sdlIsScreenSaverEnabled :: IO SDL_bool
 
 isScreenSaverEnabled :: IO Bool
 isScreenSaverEnabled = fmap (/= 0) sdlIsScreenSaverEnabled
 
 -- void SDL_HideWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_HideWindow" sdlHideWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_HideWindow" sdlHideWindow :: Ptr WindowStruct -> IO ()
 
 hideWindow :: Window -> IO ()
 hideWindow win = withForeignPtr win sdlHideWindow
 
 -- void SDL_MaximizeWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_MaximizeWindow" sdlMaximizeWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_MaximizeWindow" sdlMaximizeWindow :: Ptr WindowStruct -> IO ()
 
 maximizeWindow :: Window -> IO ()
 maximizeWindow win = withForeignPtr win sdlMaximizeWindow
 
 -- void SDL_MinimizeWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_MinimizeWindow" sdlMinimizeWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_MinimizeWindow" sdlMinimizeWindow :: Ptr WindowStruct -> IO ()
 
 minimizeWindow :: Window -> IO ()
 minimizeWindow win = withForeignPtr win sdlMinimizeWindow
 
 -- void SDL_RaiseWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_RaiseWindow" sdlRaiseWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_RaiseWindow" sdlRaiseWindow :: Ptr WindowStruct -> IO ()
 
 raiseWindow :: Window -> IO ()
 raiseWindow win = withForeignPtr win sdlRaiseWindow
 
 -- void SDL_RestoreWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_RestoreWindow" sdlRestoreWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_RestoreWindow" sdlRestoreWindow :: Ptr WindowStruct -> IO ()
 
 restoreWindow :: Window -> IO ()
 restoreWindow win = withForeignPtr win sdlRestoreWindow
 
 -- void SDL_ShowWindow(SDL_Window* window)
-foreign import ccall unsafe "SDL_ShowWindow" sdlShowWindow :: Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_ShowWindow" sdlShowWindow :: Ptr WindowStruct -> IO ()
 
 showWindow :: Window -> IO ()
 showWindow win = withForeignPtr win sdlShowWindow
 
 -- int SDL_SetWindowBrightness(SDL_Window* window, float brightness)
-foreign import ccall unsafe "SDL_SetWindowBrightness"
+foreign import ccall safe "SDL_SetWindowBrightness"
   sdlSetWindowBrightness :: Ptr WindowStruct -> CFloat -> IO CInt
 
 setWindowBrightness :: Window -> Double -> IO ()
@@ -427,7 +427,7 @@ setWindowBrightness win brightness =
     fmap (==0) (sdlSetWindowBrightness cw (realToFrac brightness))
 
 -- float SDL_GetWindowBrightness(SDL_Window* window)
-foreign import ccall unsafe "SDL_GetWindowBrightness"
+foreign import ccall safe "SDL_GetWindowBrightness"
   sdlGetWindowBrightness :: Ptr WindowStruct -> IO CFloat
 
 -- FIXME: Error handling?
@@ -443,7 +443,7 @@ getWindowBrightness win =
 -- int SDL_GetWindowGammaRamp(SDL_Window* window,Uint16*red,Uint16*green,Uint16*blue)
 
 -- void SDL_SetWindowGrab(SDL_Window* window, SDL_bool    grabbed)
-foreign import ccall unsafe "SDL_SetWindowGrab"
+foreign import ccall safe "SDL_SetWindowGrab"
   sdlSetWindowGrab :: Ptr WindowStruct -> SDL_bool -> IO ()
 
 setWindowGrab :: Window -> Bool -> IO ()
@@ -452,13 +452,13 @@ setWindowGrab win flag =
   sdlSetWindowGrab cw (if flag then 1 else 0)
 
 -- SDL_bool SDL_GetWindowGrab(SDL_Window* window)
-foreign import ccall unsafe "SDL_GetWindowGrab"
+foreign import ccall safe "SDL_GetWindowGrab"
   sdlGetWindowGrab :: Ptr WindowStruct -> IO SDL_bool
 
 getWindowGrab :: Window -> IO Bool
 getWindowGrab win = withForeignPtr win $ fmap (/=0) . sdlGetWindowGrab
 
-foreign import ccall unsafe "SDL_SetWindowIcon"
+foreign import ccall safe "SDL_SetWindowIcon"
   sdlSetWindowIcon :: Ptr WindowStruct -> Ptr SurfaceStruct -> IO ()
 
 setWindowIcon :: Window -> Surface -> IO ()
@@ -467,7 +467,7 @@ setWindowIcon win icon =
     withForeignPtr icon $ \icon' -> sdlSetWindowIcon cw icon'
 
 -- void SDL_SetWindowMaximumSize(SDL_Window* window,int max_w,int max_h)
-foreign import ccall unsafe "SDL_SetWindowMaximumSize"
+foreign import ccall safe "SDL_SetWindowMaximumSize"
   sdlSetWindowMaximumSize :: Ptr WindowStruct -> CInt -> CInt -> IO ()
 
 setWindowMaximumSize :: Window -> Size -> IO ()
@@ -476,7 +476,7 @@ setWindowMaximumSize win (Size width height) =
   sdlSetWindowMaximumSize cw (fromIntegral height) (fromIntegral width)
 
 -- void SDL_GetWindowMaximumSize(SDL_Window* window,int*w,int*h)
-foreign import ccall unsafe "SDL_GetWindowMaximumSize"
+foreign import ccall safe "SDL_GetWindowMaximumSize"
   sdlGetWindowMaximumSize :: Ptr WindowStruct -> Ptr CInt -> Ptr CInt -> IO ()
 
 getWindowMaximumSize :: Window -> IO Size
@@ -488,7 +488,7 @@ getWindowMaximumSize win =
     mkSize <$> peek widthPtr <*> peek heightPtr
 
 -- void SDL_SetWindowMinimumSize(SDL_Window* window,int min_w,int min_h)
-foreign import ccall unsafe "SDL_SetWindowMinimumSize"
+foreign import ccall safe "SDL_SetWindowMinimumSize"
   sdlSetWindowMinimumSize :: Ptr WindowStruct -> CInt -> CInt -> IO ()
 
 setWindowMinimumSize :: Window -> Size -> IO ()
@@ -497,7 +497,7 @@ setWindowMinimumSize win (Size width height) =
   sdlSetWindowMinimumSize cw (fromIntegral width) (fromIntegral height)
 
 -- void SDL_GetWindowMinimumSize(SDL_Window* window, int*w, int*h)
-foreign import ccall unsafe "SDL_GetWindowMinimumSize"
+foreign import ccall safe "SDL_GetWindowMinimumSize"
   sdlGetWindowMinimumSize :: Ptr WindowStruct -> Ptr CInt -> Ptr CInt -> IO ()
 
 getWindowMinimumSize :: Window -> IO Size
@@ -509,7 +509,7 @@ getWindowMinimumSize win =
     mkSize <$> peek widthPtr <*> peek heightPtr
 
 -- void SDL_SetWindowPosition(SDL_Window* window, int x, int y)
-foreign import ccall unsafe "SDL_SetWindowPosition"
+foreign import ccall safe "SDL_SetWindowPosition"
   sdlSetWindowPosition :: Ptr WindowStruct -> CInt -> CInt -> IO ()
 
 setWindowPosition :: Window -> Position -> IO ()
@@ -518,7 +518,7 @@ setWindowPosition win (Position x y) =
   sdlSetWindowPosition cw (fromIntegral x) (fromIntegral y)
 
 -- void SDL_GetWindowPosition(SDL_Window* window, int*x, int*y)
-foreign import ccall unsafe "SDL_GetWindowPosition"
+foreign import ccall safe "SDL_GetWindowPosition"
   sdlGetWindowPosition :: Ptr WindowStruct -> Ptr CInt -> Ptr CInt -> IO ()
 
 getWindowPosition :: Window -> IO Position
@@ -530,7 +530,7 @@ getWindowPosition win =
     mkPosition <$> peek xPtr <*> peek yPtr
 
 -- void SDL_SetWindowSize(SDL_Window* window, int w, int h)
-foreign import ccall unsafe "SDL_SetWindowSize"
+foreign import ccall safe "SDL_SetWindowSize"
   sdlSetWindowSize :: Ptr WindowStruct -> CInt -> CInt -> IO ()
 
 setWindowSize :: Window -> Size -> IO ()
@@ -539,7 +539,7 @@ setWindowSize win (Size width height) =
   sdlSetWindowSize cw (fromIntegral width) (fromIntegral height)
 
 -- void SDL_GetWindowSize(SDL_Window* window, int*w, int*h)
-foreign import ccall unsafe "SDL_GetWindowSize"
+foreign import ccall safe "SDL_GetWindowSize"
   sdlGetWindowSize :: Ptr WindowStruct -> Ptr CInt -> Ptr CInt -> IO ()
 
 getWindowSize :: Window -> IO Size
@@ -551,7 +551,7 @@ getWindowSize win =
     mkSize <$> peek widthPtr <*> peek heightPtr
 
 -- void SDL_SetWindowTitle(SDL_Window* window, const char* title)
-foreign import ccall unsafe "SDL_SetWindowTitle"
+foreign import ccall safe "SDL_SetWindowTitle"
   sdlSetWindowTitle :: Ptr WindowStruct -> CString -> IO ()
 
 setWindowTitle :: Window -> String -> IO ()
@@ -561,17 +561,17 @@ setWindowTitle win title =
 
 -- const char* SDL_GetWindowTitle(SDL_Window* window)
 
-foreign import ccall unsafe "SDL_GetWindowTitle"
+foreign import ccall safe "SDL_GetWindowTitle"
   sdlGetWindowTitle :: Ptr WindowStruct -> IO CString
 
 getWindowTitle :: Window -> IO String
 getWindowTitle w = withForeignPtr w $ sdlGetWindowTitle >=> peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowPixelFormat"
+foreign import ccall safe "SDL_GetWindowPixelFormat"
   sdlGetWindowPixelFormat :: Ptr WindowStruct -> IO Word32
 
-foreign import ccall unsafe "SDL_AllocFormat"
+foreign import ccall safe "SDL_AllocFormat"
   sdlAllocFormat :: Word32 -> IO (Ptr PixelFormatStruct)
 
 getWindowPixelFormat :: Window -> IO Word32
@@ -580,16 +580,16 @@ getWindowPixelFormat w = withForeignPtr w sdlGetWindowPixelFormat
 allocFormat :: Word32 -> IO PixelFormat
 allocFormat pf = sdlAllocFormat pf >>= newForeignPtr sdlFreeFormat_finalizer
 
-foreign import ccall unsafe "&SDL_FreeFormat"
+foreign import ccall safe "&SDL_FreeFormat"
   sdlFreeFormat_finalizer :: FunPtr (Ptr PixelFormatStruct -> IO ())
 
-foreign import ccall unsafe "SDL_MapRGB"
+foreign import ccall safe "SDL_MapRGB"
   sdlMapRGB :: Ptr PixelFormatStruct -> Word8 -> Word8 -> Word8 -> IO Word32
 
 mapRGB :: PixelFormat -> Word8 -> Word8 -> Word8 -> IO Word32
 mapRGB p r g b = withForeignPtr p $ \cp -> sdlMapRGB cp r g b
 
-foreign import ccall unsafe "SDL_MapRGBA"
+foreign import ccall safe "SDL_MapRGBA"
   sdlMapRGBA :: Ptr PixelFormatStruct -> Word8 -> Word8 -> Word8 -> Word8 -> IO Word32
 
 mapRGBA :: PixelFormat -> Word8 -> Word8 -> Word8 -> Word8 -> IO Word32
@@ -626,7 +626,7 @@ instance Storable DisplayMode where
     <*> #{peek SDL_DisplayMode, refresh_rate} ptr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetDisplayMode"
+foreign import ccall safe "SDL_GetDisplayMode"
   sdlGetDisplayMode :: #{type int} -> #{type int} -> Ptr DisplayMode -> IO #{type int}
 
 getDisplayMode :: #{type int} -> #{type int} -> IO DisplayMode
@@ -635,7 +635,7 @@ getDisplayMode d m = alloca $ \displayModePtr -> do
   peek displayModePtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetCurrentDisplayMode"
+foreign import ccall safe "SDL_GetCurrentDisplayMode"
   sdlGetCurrentDisplayMode :: #{type int} -> Ptr DisplayMode -> IO #{type int}
 
 getCurrentDisplayMode :: #{type int} -> IO DisplayMode
@@ -644,7 +644,7 @@ getCurrentDisplayMode d = alloca $ \displayModePtr -> do
   peek displayModePtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetDesktopDisplayMode"
+foreign import ccall safe "SDL_GetDesktopDisplayMode"
   sdlGetDesktopDisplayMode :: #{type int} -> Ptr DisplayMode -> IO #{type int}
 
 getDesktopDisplayMode :: #{type int} -> IO DisplayMode
@@ -653,7 +653,7 @@ getDesktopDisplayMode d = alloca $ \displayModePtr -> do
   peek displayModePtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetClosestDisplayMode"
+foreign import ccall safe "SDL_GetClosestDisplayMode"
   sdlGetClosestDisplayMode :: #{type int} -> Ptr DisplayMode -> Ptr DisplayMode -> IO (Ptr DisplayMode)
 
 getClosestDisplayMode :: #{type int} -> DisplayMode -> IO (Maybe DisplayMode)
@@ -664,7 +664,7 @@ getClosestDisplayMode d mode =
     maybePeek peek closestPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowDisplayMode"
+foreign import ccall safe "SDL_GetWindowDisplayMode"
   sdlGetWindowDisplayMode :: Ptr WindowStruct -> Ptr DisplayMode -> IO #{type int}
 
 getWindowDisplayMode :: Window -> IO DisplayMode
@@ -675,7 +675,7 @@ getWindowDisplayMode win =
     peek modePtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetWindowDisplayMode"
+foreign import ccall safe "SDL_SetWindowDisplayMode"
   sdlSetWindowDisplayMode :: Ptr WindowStruct -> Ptr DisplayMode -> IO #{type int}
 
 setWindowDisplayMode :: Window -> Maybe DisplayMode -> IO ()
@@ -685,7 +685,7 @@ setWindowDisplayMode win mode =
   fatalSDLBool "SDL_SetWindowDisplayMode" (sdlSetWindowDisplayMode cw modePtr)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowDisplayIndex"
+foreign import ccall safe "SDL_GetWindowDisplayIndex"
   sdlGetWindowDisplayIndex :: Ptr WindowStruct -> IO #{type int}
 
 getWindowDisplayIndex :: Window -> IO Int
@@ -695,7 +695,7 @@ getWindowDisplayIndex win =
     handleErrorI "getWindowDisplayIndex" ret (return . fromIntegral)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowID"
+foreign import ccall safe "SDL_GetWindowID"
   sdlGetWindowID :: Ptr WindowStruct -> IO #{type Uint32}
 
 getWindowID :: Window -> IO WindowID
@@ -703,7 +703,7 @@ getWindowID win =
   withForeignPtr win $ \cw -> fromIntegral <$> sdlGetWindowID cw
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowFromID"
+foreign import ccall safe "SDL_GetWindowFromID"
   sdlGetWindowFromID :: #{type Uint32} -> IO (Ptr WindowStruct)
 
 getWindowFromID :: WindowID -> IO Window
@@ -712,7 +712,7 @@ getWindowFromID wid = do
   handleError "getWindowFromID" cw mkFinalizedWindow
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetDisplayName"
+foreign import ccall safe "SDL_GetDisplayName"
   sdlGetDisplayName :: #{type int} -> IO CString
 
 getDisplayName :: #{type int} -> IO String
@@ -720,21 +720,21 @@ getDisplayName i =
   fatalSDLNull "SDL_GetDisplayName" (sdlGetDisplayName i) >>= peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumDisplayModes"
+foreign import ccall safe "SDL_GetNumDisplayModes"
   getNumDisplayModes :: #{type int} -> IO #{type int}
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumVideoDisplays"
+foreign import ccall safe "SDL_GetNumVideoDisplays"
   getNumVideoDisplays :: IO #{type int}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetCurrentVideoDriver"
+foreign import ccall safe "SDL_GetCurrentVideoDriver"
   sdlGetCurrentVideoDriver :: IO CString
 
 getCurrentVideoDriver :: IO String
 getCurrentVideoDriver = sdlGetCurrentVideoDriver >>= peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetDisplayBounds"
+foreign import ccall safe "SDL_GetDisplayBounds"
   sdlGetDisplayBounds :: #{type int} -> Ptr Rect -> IO #{type int}
 
 getDisplayBounds :: Int -> IO Rect
@@ -744,11 +744,11 @@ getDisplayBounds index =
     handleErrorI "getDisplayBounds" ret $ return $ peek rect
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumVideoDrivers"
+foreign import ccall safe "SDL_GetNumVideoDrivers"
   getNumVideoDrivers :: IO #{type int}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetVideoDriver"
+foreign import ccall safe "SDL_GetVideoDriver"
   sdlGetVideoDriver :: #{type int} -> IO CString
 
 getVideoDriver :: #{type int} -> IO String
@@ -756,7 +756,7 @@ getVideoDriver =
   fatalSDLNull "SDL_GetVideoDriver" . sdlGetVideoDriver >=> peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetWindowFlags"
+foreign import ccall safe "SDL_GetWindowFlags"
   sdlGetWindowFlags :: Ptr WindowStruct -> IO #{type Uint32}
 
 getWindowFlags :: Window -> IO [WindowFlag]
@@ -764,9 +764,9 @@ getWindowFlags w = withForeignPtr w $
   fmap (fromBitmask windowFlagToC) . sdlGetWindowFlags
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_VideoInit"
+foreign import ccall safe "SDL_VideoInit"
   videoInit :: IO ()
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_VideoQuit"
+foreign import ccall safe "SDL_VideoQuit"
   videoQuit :: IO ()

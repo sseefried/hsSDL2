@@ -45,16 +45,16 @@ removeTimer :: TimerCallback -> IO Bool
 removeTimer (TimerCallback tId) = do
   sdlBoolToBool <$> sdlRemoveTimer tId
 
-foreign import ccall unsafe "SDL_Delay"
+foreign import ccall safe "SDL_Delay"
   delay :: Word32 -> IO ()
 
-foreign import ccall unsafe "SDL_GetPerformanceCounter"
+foreign import ccall safe "SDL_GetPerformanceCounter"
   getPerformanceCounter :: IO (#{type Uint64})
 
-foreign import ccall unsafe "SDL_GetPerformanceFrequency"
+foreign import ccall safe "SDL_GetPerformanceFrequency"
   getPerformanceFrequency :: IO (#{type Uint64})
 
-foreign import ccall unsafe "SDL_GetTicks"
+foreign import ccall safe "SDL_GetTicks"
   getTicks :: IO (#{type Uint32})
 
 ticksPassed :: #{type Uint32} -> #{type Uint32} -> Bool

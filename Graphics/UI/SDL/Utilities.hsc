@@ -88,5 +88,5 @@ boolToSdlBool :: Bool -> #{type SDL_bool}
 boolToSdlBool True = #{const SDL_TRUE}
 boolToSdlBool False = #{const SDL_FALSE}
 
-foreign import ccall unsafe "SDL_free"
+foreign import ccall safe "SDL_free"
  sdlFree :: Ptr a -> IO ()

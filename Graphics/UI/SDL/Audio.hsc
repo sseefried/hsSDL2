@@ -140,10 +140,10 @@ instance Storable AudioSpec where
     <*> #{peek SDL_AudioSpec, size} ptr
     <*> pure Nothing
 
-foreign import ccall unsafe "&SDL_FreeWAV"
+foreign import ccall safe "&SDL_FreeWAV"
   sdlFreeWAV_finalizer :: FunPtr (Ptr (#{type Uint8}) -> IO ())
 
-foreign import ccall unsafe "SDL_LoadWAV_RW"
+foreign import ccall safe "SDL_LoadWAV_RW"
   sdlLoadWAV :: Ptr RWopsStruct -> #{type int} -> Ptr AudioSpec -> Ptr (Ptr #{type Uint8}) -> Ptr (#{type Uint32}) -> IO (Ptr AudioSpec)
 
 loadWAV :: FilePath -> AudioSpec -> IO (Vector Word8, AudioSpec)
@@ -162,7 +162,7 @@ loadWAV filePath desiredSpec =
       outputBufferV <- V.unsafeFromForeignPtr0 foreignAudioBuffer . fromIntegral <$> peek outputBufferSizePtr
       return (outputBufferV, actualSpec)
 
-foreign import ccall unsafe "SDL_OpenAudioDevice"
+foreign import ccall safe "SDL_OpenAudioDevice"
   sdlOpenAudioDevice :: CString -> #{type int} -> Ptr AudioSpec -> Ptr AudioSpec -> #{type int}
                      -> IO (#{type SDL_AudioDeviceID})
 
@@ -180,7 +180,7 @@ openAudioDevice deviceName usage desiredSpec _ =
     actualSpec <- peek actualSpecPtr
     return (AudioDevice devId, actualSpec)
 
-foreign import ccall unsafe "SDL_OpenAudio"
+foreign import ccall safe "SDL_OpenAudio"
   sdlOpenAudio :: Ptr AudioSpec -> Ptr AudioSpec -> IO #{type int}
 
 openAudio :: AudioSpec -> IO (Maybe AudioSpec)
@@ -194,7 +194,7 @@ encodeUsage :: AudioDeviceUsage -> #{type int}
 encodeUsage ForPlayback = 0
 encodeUsage ForCapture = 1
 
-foreign import ccall unsafe "SDL_PauseAudioDevice"
+foreign import ccall safe "SDL_PauseAudioDevice"
   sdlPauseAudioDevice :: #{type SDL_AudioDeviceID} -> #{type int} -> IO ()
 
 pauseAudioDevice :: AudioDevice -> Bool -> IO ()
@@ -202,46 +202,46 @@ pauseAudioDevice (AudioDevice dId) paused =
   sdlPauseAudioDevice dId (if paused then 1 else 0)
  
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LockAudio"
+foreign import ccall safe "SDL_LockAudio"
   lockAudio :: IO ()
   
-foreign import ccall unsafe "SDL_UnlockAudio"
+foreign import ccall safe "SDL_UnlockAudio"
   unlockAudio :: IO ()
   
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LockAudioDevice"
+foreign import ccall safe "SDL_LockAudioDevice"
   sdlLockAudioDevice :: #{type SDL_AudioDeviceID} -> IO ()
 
 lockAudioDevice :: AudioDevice -> IO ()
 lockAudioDevice (AudioDevice dId) = sdlLockAudioDevice dId
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_UnlockAudioDevice"
+foreign import ccall safe "SDL_UnlockAudioDevice"
   sdlUnlockAudioDevice :: #{type SDL_AudioDeviceID} -> IO ()
 
 unlockAudioDevice :: AudioDevice -> IO ()
 unlockAudioDevice (AudioDevice dId) = sdlUnlockAudioDevice dId
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumAudioDrivers"
+foreign import ccall safe "SDL_GetNumAudioDrivers"
   getNumAudioDrivers :: IO #{type int}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDriver"
+foreign import ccall safe "SDL_GetAudioDriver"
   sdlGetAudioDriver :: #{type int} -> IO CString
 
 getAudioDriver :: #{type int} -> IO String
 getAudioDriver = sdlGetAudioDriver >=> peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetCurrentAudioDriver"
+foreign import ccall safe "SDL_GetCurrentAudioDriver"
   sdlGetCurrentAudioDriver :: IO CString
 
 getCurrentAudioDriver :: IO (Maybe String)
 getCurrentAudioDriver = sdlGetCurrentAudioDriver >>= maybePeek peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumAudioDevices"
+foreign import ccall safe "SDL_GetNumAudioDevices"
   sdlGetNumAudioDevices :: #{type int} -> IO #{type int}
 
 getNumAudioDevices :: AudioDeviceUsage -> IO #{type int}
@@ -256,14 +256,14 @@ decodeAudioStatus #{const SDL_AUDIO_PLAYING} = AudioPlaying
 decodeAudioStatus #{const SDL_AUDIO_PAUSED} = AudioPaused
 decodeAudioStatus i = error $ "Unexpected SDL_AudioStatus: " ++ show i
 
-foreign import ccall unsafe "SDL_GetAudioStatus"
+foreign import ccall safe "SDL_GetAudioStatus"
   sdlGetAudioStatus :: IO #{type SDL_AudioStatus}
 
 getAudioStatus :: IO AudioStatus
 getAudioStatus = decodeAudioStatus <$> sdlGetAudioStatus
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDeviceName"
+foreign import ccall safe "SDL_GetAudioDeviceName"
   sdlGetAudioDeviceName :: #{type int} -> #{type int} -> IO CString
 
 getAudioDeviceName :: AudioDeviceUsage -> #{type int} -> IO String
@@ -272,14 +272,14 @@ getAudioDeviceName usage index =
     (sdlGetAudioDeviceName (encodeUsage usage) index) >>= peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDeviceStatus"
+foreign import ccall safe "SDL_GetAudioDeviceStatus"
   sdlGetAudioDeviceStatus :: #{type SDL_AudioDeviceID} -> IO #{type SDL_AudioStatus}
 
 getAudioDeviceStatus :: AudioDevice -> IO AudioStatus
 getAudioDeviceStatus (AudioDevice dId) =
   decodeAudioStatus <$> sdlGetAudioDeviceStatus dId
 
-foreign import ccall unsafe "SDL_MixAudio"
+foreign import ccall safe "SDL_MixAudio"
   sdlMixAudio :: Ptr #{type Uint8} -> Ptr #{type Uint8} -> #{type Uint32} -> #{type int} -> IO ()
 
 mixAudio :: ByteString -> ByteString -> Int -> IO ()
@@ -292,7 +292,7 @@ mixAudio xbs ybs volume =
            vol' = fromIntegral volume
        in sdlMixAudio xbs'' ybs'' len' vol'
 
-foreign import ccall unsafe "SDL_MixAudioFormat"
+foreign import ccall safe "SDL_MixAudioFormat"
   sdlMixAudioFormat :: Ptr #{type Uint8} -> Ptr #{type Uint8} -> #{type SDL_AudioFormat} -> #{type Uint32} -> #{type int} -> IO ()
 
 mixAudioFormat :: ByteString -> ByteString -> AudioFormat -> Int -> IO ()
@@ -306,7 +306,7 @@ mixAudioFormat xbs ybs aufmt volume =
            fmt' = fromAudioFormat aufmt
        in sdlMixAudioFormat xbs'' ybs'' fmt' len' vol'
 
-foreign import ccall unsafe "SDL_AudioInit"
+foreign import ccall safe "SDL_AudioInit"
   sdlAudioInit :: CString -> IO #{type int}
 
 audioInit :: String -> IO ()
@@ -314,19 +314,19 @@ audioInit driver_name =
   withCString driver_name $ \cstr ->
     fatalSDLBool "SDL_AudioInit" (sdlAudioInit cstr)
 
-foreign import ccall unsafe "SDL_AudioQuit"
+foreign import ccall safe "SDL_AudioQuit"
   audioQuit :: IO ()
 
-foreign import ccall unsafe "SDL_CloseAudio"
+foreign import ccall safe "SDL_CloseAudio"
   closeAudio :: IO ()
 
-foreign import ccall unsafe "SDL_CloseAudioDevice"
+foreign import ccall safe "SDL_CloseAudioDevice"
   sdlCloseAudioDevice :: #{type SDL_AudioDeviceID} -> IO ()
 
 closeAudioDevice :: AudioDevice -> IO ()
 closeAudioDevice (AudioDevice dev) = sdlCloseAudioDevice dev
 
-foreign import ccall unsafe "SDL_PauseAudio"
+foreign import ccall safe "SDL_PauseAudio"
   sdlPauseAudio :: #{type int} -> IO ()
 
 -- | True to pause. False to unpause.

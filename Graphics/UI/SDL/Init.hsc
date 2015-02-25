@@ -49,7 +49,7 @@ initFlagToC InitEverything     = #{const SDL_INIT_EVERYTHING}
 initFlagToC InitNoParachute    = #{const SDL_INIT_NOPARACHUTE}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_Init"
+foreign import ccall safe "SDL_Init"
   sdlInit :: #{type Uint32} -> IO #{type int}
 
 init :: [InitFlag] -> IO ()
@@ -57,11 +57,11 @@ init = fatalSDLBool "SDL_Init" .
   sdlInit . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_Quit"
+foreign import ccall safe "SDL_Quit"
   quit :: IO ()
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_InitSubSystem"
+foreign import ccall safe "SDL_InitSubSystem"
   sdlInitSubSystem :: #{type Uint32} -> IO #{type int}
 
 initSubSystem :: [InitFlag] -> IO ()
@@ -69,14 +69,14 @@ initSubSystem = fatalSDLBool "SDL_InitSubSystem" .
   sdlInitSubSystem . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_QuitSubSystem"
+foreign import ccall safe "SDL_QuitSubSystem"
   sdlQuitSubSystem :: #{type Uint32} -> IO ()
 
 quitSubSystem :: [InitFlag] -> IO ()
 quitSubSystem = sdlQuitSubSystem . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_WasInit"
+foreign import ccall safe "SDL_WasInit"
   sdlWasInit :: #{type Uint32} -> IO #{type Uint32}
 
 wasInit :: [InitFlag] -> IO [InitFlag]

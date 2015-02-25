@@ -43,7 +43,7 @@ compiledVersion = Version
     ] []
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetVersion"
+foreign import ccall safe "SDL_GetVersion"
   sdlGetVersion :: Ptr SDLVersion -> IO ()
 
 -- | The version of SDL that is linked against your program.
@@ -54,7 +54,7 @@ getVersion = alloca $ \versionPtr -> do
   return (Version (map fromIntegral [major,minor,patch]) [])
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetRevision"
+foreign import ccall safe "SDL_GetRevision"
   sdlGetRevision :: IO CString
 
 -- | The revision of SDL your program was linked against
@@ -66,7 +66,7 @@ getRevision :: IO String
 getRevision = sdlGetRevision >>= peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetRevisionNumber"
+foreign import ccall safe "SDL_GetRevisionNumber"
   sdlGetRevisionNumber :: IO #{type int}
 
 -- | The revision number of SDL your program was linked against

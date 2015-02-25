@@ -43,18 +43,18 @@ delHintCallback hintName (HintCallback f) = withCString hintName $ \cHintName ->
   sdlDelHintCallback cHintName f nullPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_ClearHints"
+foreign import ccall safe "SDL_ClearHints"
   clearHints :: IO ()
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetHint"
+foreign import ccall safe "SDL_GetHint"
   sdlGetHint :: CString -> IO CString
 
 getHint :: String -> IO (Maybe String)
 getHint hint = withCString hint (sdlGetHint >=> maybePeek peekCString)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetHint"
+foreign import ccall safe "SDL_SetHint"
   sdlSetHint :: CString -> CString -> IO Bool
 
 setHint :: String -> String -> IO Bool
@@ -66,7 +66,7 @@ setHint k v =
 --------------------------------------------------------------------------------
 data HintPriority = HintDefault | HintNormal | HintOverride
 
-foreign import ccall unsafe "SDL_SetHintWithPriority"
+foreign import ccall safe "SDL_SetHintWithPriority"
   sdlSetHintWithPriority :: CString -> CString -> #{type SDL_HintPriority} -> IO #{type SDL_bool}
 
 setHintWithPriority :: String -> String -> HintPriority -> IO Bool

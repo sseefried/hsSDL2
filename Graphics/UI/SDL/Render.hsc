@@ -115,7 +115,7 @@ flipToC Horizontal = #{const SDL_FLIP_HORIZONTAL}
 flipToC Vertical = #{const SDL_FLIP_VERTICAL}
 
 
-foreign import ccall unsafe "SDL_CreateRenderer"
+foreign import ccall safe "SDL_CreateRenderer"
   sdlCreateRenderer :: Ptr WindowStruct -> CInt -> CUInt -> IO (Ptr RendererStruct)
 
 createRenderer :: Window -> RenderingDevice -> [RendererFlag] -> IO Renderer
@@ -128,7 +128,7 @@ createRenderer w d flags = withForeignPtr w $ \cW -> do
                FirstSupported -> 0
 
 
-foreign import ccall unsafe "SDL_CreateSoftwareRenderer"
+foreign import ccall safe "SDL_CreateSoftwareRenderer"
   sdlCreateSoftwareRenderer :: Ptr SurfaceStruct -> IO (Ptr RendererStruct)
 
 createSoftwareRenderer :: Surface -> IO Renderer
@@ -141,7 +141,7 @@ withRenderer :: Window -> RenderingDevice -> [RendererFlag] -> (Renderer -> IO r
 withRenderer w d f a = bracket (createRenderer w d f) destroyRenderer a
 
 
-foreign import ccall unsafe "SDL_CreateTexture"
+foreign import ccall safe "SDL_CreateTexture"
   sdlCreateTexture :: Ptr RendererStruct -> Word32 -> CInt -> CInt -> CInt -> IO (Ptr TextureStruct)
 
 createTexture :: Renderer -> PixelFormatEnum -> TextureAccess -> Int -> Int -> IO Texture
@@ -154,7 +154,7 @@ createTexture renderer format access w h =
                           (fromIntegral h)
     handleError "createTexture" t mkFinalizedTexture
 
-foreign import ccall unsafe "SDL_CreateTextureFromSurface"
+foreign import ccall safe "SDL_CreateTextureFromSurface"
   sdlCreateTextureFromSurface :: Ptr RendererStruct -> Ptr SurfaceStruct -> IO (Ptr TextureStruct)
 
 createTextureFromSurface :: Renderer -> Surface -> IO Texture
@@ -165,7 +165,7 @@ createTextureFromSurface renderer surface =
     handleError "createTextureFromSurface" t mkFinalizedTexture
 
 
-foreign import ccall unsafe "SDL_CreateWindowAndRenderer"
+foreign import ccall safe "SDL_CreateWindowAndRenderer"
   sdlCreateWindowAndRenderer
     :: #{type int} -> #{type int} -> #{type Uint32}
     -> Ptr (Ptr WindowStruct) -> Ptr (Ptr RendererStruct) -> IO ( #{type int} )
@@ -187,7 +187,7 @@ createWindowAndRenderer (Size width height) windowFlags = do
        else
         (\err -> error $ "createWindowAndRenderer: " ++ show err) =<< getError
 
-foreign import ccall unsafe "&SDL_DestroyRenderer"
+foreign import ccall safe "&SDL_DestroyRenderer"
   sdlDestroyRenderer_finalizer :: FunPtr (Ptr RendererStruct -> IO ())
 
 destroyRenderer :: Renderer -> IO ()
@@ -202,14 +202,14 @@ withTexture :: Renderer -> PixelFormatEnum -> TextureAccess -> Int -> Int -> (Te
 withTexture r f t w h a = bracket (createTexture r f t w h) destroyTexture a
 
 
-foreign import ccall unsafe "SDL_GetNumRenderDrivers"
+foreign import ccall safe "SDL_GetNumRenderDrivers"
   sdlGetNumRenderDrivers :: IO CInt
 
 getNumRenderDrivers :: IO Int
 getNumRenderDrivers = liftM fromIntegral sdlGetNumRenderDrivers
 
 
-foreign import ccall unsafe "SDL_GetRenderDrawBlendMode"
+foreign import ccall safe "SDL_GetRenderDrawBlendMode"
   sdlGetRenderDrawBlendMode :: Ptr RendererStruct -> Ptr CInt -> IO CInt
 
 getRenderDrawBlendMode :: Renderer -> IO BlendMode
@@ -221,7 +221,7 @@ getRenderDrawBlendMode renderer =
       handleErrorI "getRenderDrawBlendMode" r (const $ return (cIntToBlendMode bm'))
 
 
-foreign import ccall unsafe "SDL_GetRenderDrawColor"
+foreign import ccall safe "SDL_GetRenderDrawColor"
   sdlGetRenderDrawColor :: Ptr RendererStruct -> Ptr Word8 -> Ptr Word8 -> Ptr Word8 -> Ptr Word8 -> IO CInt
 
 getRenderDrawColor :: Renderer -> IO Color
@@ -234,14 +234,14 @@ getRenderDrawColor renderer = withForeignPtr renderer $ \r ->
       handleErrorI "getRenderDrawColor" ret (const (Color <$> peek rp <*> peek gp <*> peek bp <*> peek ap))
 
 
-{-foreign import ccall unsafe "SDL_GetRenderDriverInfo"
+{-foreign import ccall safe "SDL_GetRenderDriverInfo"
   sdlGetRenderDriverInfo :: CInt -> Ptr RendererInfoStruct -> IO CInt
 
 getRenderDriverInfo :: Int -> IO RendererInfo
 getRenderDriverInfo = undefined -- TODO-}
 
 
-foreign import ccall unsafe "SDL_GetRenderTarget"
+foreign import ccall safe "SDL_GetRenderTarget"
   sdlGetRenderTarget :: Ptr RendererStruct -> IO (Ptr TextureStruct)
 
 getRenderTarget :: Renderer -> IO Texture
@@ -250,7 +250,7 @@ getRenderTarget renderer = withForeignPtr renderer $ \rp -> do
     newForeignPtr_ r
 
 
-foreign import ccall unsafe "SDL_GetRenderer"
+foreign import ccall safe "SDL_GetRenderer"
   sdlGetRenderer :: Ptr WindowStruct -> IO (Ptr RendererStruct)
 
 getRenderer :: Window -> IO Renderer
@@ -263,7 +263,7 @@ getRenderer window = withForeignPtr window $ \wp -> do
 getRendererInfo = undefined -- TODO-}
 
 
-foreign import ccall unsafe "SDL_GetRendererOutputSize"
+foreign import ccall safe "SDL_GetRendererOutputSize"
   sdlGetRendererOutputSize :: Ptr RendererStruct -> Ptr CInt -> Ptr CInt -> IO CInt
 
 getRendererOutputSize :: Renderer -> IO (Int, Int)
@@ -311,7 +311,7 @@ getTextureColorMod texture = withForeignPtr texture $ \tp ->
                                                        <*> liftM fromIntegral (peek gp)
                                                        <*> liftM fromIntegral (peek bp)))
 
-foreign import ccall unsafe "SDL_LockTexture"
+foreign import ccall safe "SDL_LockTexture"
   sdlLockTexture :: Ptr TextureStruct -> Ptr Rect -> Ptr a -> Ptr CInt -> IO CInt
 
 lockTexture :: Texture -> Maybe Rect -> ((Ptr a, Int) -> IO r) -> IO r
@@ -330,7 +330,7 @@ lockTexture texture rect f =
     (sdlUnlockTexture ct)
 
 
-foreign import ccall unsafe "SDL_QueryTexture"
+foreign import ccall safe "SDL_QueryTexture"
   sdlQueryTexture :: Ptr TextureStruct -> Ptr CUInt -> Ptr CInt -> Ptr CInt -> Ptr CInt -> IO ()
 
 -- | Use this function to query the size of a texture.
@@ -343,7 +343,7 @@ queryTexture texture =
     mkSize <$> peek widthPtr <*> peek heightPtr
 
 
-foreign import ccall unsafe "SDL_RenderClear"
+foreign import ccall safe "SDL_RenderClear"
   sdlRenderClear :: Ptr RendererStruct -> IO Int
 
 renderClear :: Renderer -> IO ()
@@ -352,7 +352,7 @@ renderClear renderer =
     fmap (== 0) . sdlRenderClear
 
 
-foreign import ccall unsafe "SDL_RenderCopy"
+foreign import ccall safe "SDL_RenderCopy"
   sdlRenderCopy :: Ptr RendererStruct -> Ptr TextureStruct -> Ptr Rect -> Ptr Rect -> IO CInt
 
 renderCopy :: Renderer -> Texture -> Maybe Rect -> Maybe Rect -> IO ()
@@ -364,7 +364,7 @@ renderCopy renderer texture src dest =
   maybeWith with dest $ \cdest ->
   (== 0) <$> sdlRenderCopy cr ct csrc cdest
 
-foreign import ccall unsafe "SDL_RenderCopyEx" sdlRenderCopyEx
+foreign import ccall safe "SDL_RenderCopyEx" sdlRenderCopyEx
   :: Ptr RendererStruct -> Ptr TextureStruct
   -> Ptr Rect -> Ptr Rect
   -> CDouble -> Ptr Point -> CInt
@@ -382,7 +382,7 @@ renderCopyEx renderer texture src dest rotation origin flips =
                (toBitmask flipToC flips)
 
 
-foreign import ccall unsafe "SDL_RenderDrawLine"
+foreign import ccall safe "SDL_RenderDrawLine"
   sdlRenderDrawLine :: Ptr RendererStruct -> CInt -> CInt -> CInt -> CInt -> IO CInt
 
 renderDrawLine :: Renderer -> Word32 -> Word32 -> Word32 -> Word32 -> IO ()
@@ -392,7 +392,7 @@ renderDrawLine renderer x y x' y' =
                                    (fromIntegral x') (fromIntegral y')
 
 
-foreign import ccall unsafe "SDL_RenderDrawLines"
+foreign import ccall safe "SDL_RenderDrawLines"
   sdlRenderDrawLines :: Ptr RendererStruct -> Ptr Point -> CInt -> IO CInt
 
 renderDrawLines :: Renderer -> V.Vector Point -> IO ()
@@ -405,7 +405,7 @@ renderDrawLines renderer points =
 
 
 
-foreign import ccall unsafe "SDL_RenderDrawPoint"
+foreign import ccall safe "SDL_RenderDrawPoint"
   sdlRenderDrawPoint :: Ptr RendererStruct -> CInt -> CInt -> IO CInt
 
 renderDrawPoint :: Renderer -> Word32 -> Word32 -> IO ()
@@ -415,7 +415,7 @@ renderDrawPoint renderer x y =
 
 
 
-foreign import ccall unsafe "SDL_RenderDrawPoints"
+foreign import ccall safe "SDL_RenderDrawPoints"
   sdlRenderDrawPoints :: Ptr RendererStruct -> Ptr Point -> CInt -> IO CInt
 
 renderDrawPoints :: Renderer -> V.Vector Point -> IO ()
@@ -427,7 +427,7 @@ renderDrawPoints renderer points =
      (== 0) <$> sdlRenderDrawPoints r cp (fromIntegral count)
 
 
-foreign import ccall unsafe "SDL_RenderDrawRect"
+foreign import ccall safe "SDL_RenderDrawRect"
   sdlRenderDrawRect :: Ptr RendererStruct -> Ptr Rect -> IO CInt
 
 renderDrawRect :: Renderer -> Rect -> IO ()
@@ -438,7 +438,7 @@ renderDrawRect renderer rect =
   (== 0) <$> sdlRenderDrawRect r cr
 
 
-foreign import ccall unsafe "SDL_RenderDrawRects"
+foreign import ccall safe "SDL_RenderDrawRects"
   sdlRenderDrawRects :: Ptr RendererStruct -> Ptr Rect -> CInt -> IO CInt
 
 renderDrawRects :: Renderer -> V.Vector Rect -> IO ()
@@ -450,7 +450,7 @@ renderDrawRects renderer rects =
      (== 0) <$> sdlRenderDrawRects r cr (fromIntegral count)
 
 
-foreign import ccall unsafe "SDL_RenderFillRect"
+foreign import ccall safe "SDL_RenderFillRect"
   sdlRenderFillRect :: Ptr RendererStruct -> Ptr Rect -> IO CInt
 
 renderFillRect :: Renderer -> Rect -> IO ()
@@ -461,7 +461,7 @@ renderFillRect renderer rect =
   (== 0) <$> sdlRenderFillRect r cr
 
 
-foreign import ccall unsafe "SDL_RenderFillRects"
+foreign import ccall safe "SDL_RenderFillRects"
   sdlRenderFillRects :: Ptr RendererStruct -> Ptr Rect -> CInt -> IO CInt
 
 renderFillRects :: Renderer -> V.Vector Rect -> IO ()
@@ -473,7 +473,7 @@ renderFillRects renderer rects =
      (== 0) <$> sdlRenderFillRects r cr (fromIntegral count)
 
 
-foreign import ccall unsafe "SDL_RenderGetClipRect"
+foreign import ccall safe "SDL_RenderGetClipRect"
   sdlRenderGetClipRect :: Ptr RendererStruct -> Ptr Rect -> IO ()
 
 renderGetClipRect :: Renderer -> IO Rect
@@ -484,7 +484,7 @@ renderGetClipRect renderer =
     peek rect
 
 
-foreign import ccall unsafe "SDL_RenderGetLogicalSize"
+foreign import ccall safe "SDL_RenderGetLogicalSize"
   sdlRenderGetLogicalSize :: Ptr RendererStruct -> Ptr CInt -> Ptr CInt -> IO ()
 
 renderGetLogicalSize :: Renderer -> IO (Int, Int)
@@ -495,7 +495,7 @@ renderGetLogicalSize renderer = withForeignPtr renderer $ \rp ->
       (,) <$> liftM fromIntegral (peek wp) <*> liftM fromIntegral (peek hp)
 
 
-foreign import ccall unsafe "SDL_RenderGetScale"
+foreign import ccall safe "SDL_RenderGetScale"
   sdlRenderGetScale :: Ptr RendererStruct -> Ptr CFloat -> Ptr CFloat -> IO ()
 
 renderGetScale :: Renderer -> IO (Float, Float)
@@ -506,7 +506,7 @@ renderGetScale renderer = withForeignPtr renderer $ \rp ->
       (,) <$> liftM (\(CFloat f) -> f) (peek xp) <*> liftM (\(CFloat f) -> f) (peek yp)
 
 
-foreign import ccall unsafe "SDL_RenderGetViewport"
+foreign import ccall safe "SDL_RenderGetViewport"
   sdlRenderGetViewport :: Ptr RendererStruct -> Ptr Rect -> IO ()
 
 renderGetViewport :: Renderer -> IO Rect
@@ -517,7 +517,7 @@ renderGetViewport renderer =
     peek rect
 
 
-foreign import ccall unsafe "SDL_RenderPresent"
+foreign import ccall safe "SDL_RenderPresent"
   sdlRenderPresent :: Ptr RendererStruct -> IO ()
 
 renderPresent :: Renderer -> IO ()
@@ -527,7 +527,7 @@ renderPresent renderer = withForeignPtr renderer $ sdlRenderPresent
 --renderReadPixels = undefined
 
 
-foreign import ccall unsafe "SDL_RenderSetClipRect"
+foreign import ccall safe "SDL_RenderSetClipRect"
   sdlRenderSetClipRect :: Ptr RendererStruct -> Ptr Rect -> IO CInt
 
 renderSetClipRect :: Renderer -> Rect -> IO ()
@@ -538,7 +538,7 @@ renderSetClipRect renderer rect =
   (== 0) <$> sdlRenderSetClipRect r cr
 
 
-foreign import ccall unsafe "SDL_RenderSetLogicalSize"
+foreign import ccall safe "SDL_RenderSetLogicalSize"
     sdlRenderSetLogicalSize :: Ptr RendererStruct -> CInt -> CInt -> IO ()
 
 renderSetLogicalSize :: Renderer -> Int -> Int -> IO ()
@@ -546,7 +546,7 @@ renderSetLogicalSize renderer width height = withForeignPtr renderer $ \r ->
     sdlRenderSetLogicalSize r (fromIntegral width) (fromIntegral height)
 
 
-foreign import ccall unsafe "SDL_RenderSetScale"
+foreign import ccall safe "SDL_RenderSetScale"
   sdlRenderSetScale :: Ptr RendererStruct -> CFloat -> CFloat -> IO CInt
 
 renderSetScale :: Renderer -> Float -> Float -> IO ()
@@ -555,7 +555,7 @@ renderSetScale renderer scaleX scaleY = withForeignPtr renderer $ \rp -> do
     handleErrorI "renderSetScale" ret (const $ return ())
 
 
-foreign import ccall unsafe "SDL_RenderSetViewport"
+foreign import ccall safe "SDL_RenderSetViewport"
   sdlRenderSetViewport :: Ptr RendererStruct -> Ptr Rect -> IO CInt
 
 renderSetViewport :: Renderer -> Rect -> IO ()
@@ -566,7 +566,7 @@ renderSetViewport renderer rect =
   (== 0) <$> sdlRenderSetViewport r cr
 
 
-foreign import ccall unsafe "SDL_RenderTargetSupported"
+foreign import ccall safe "SDL_RenderTargetSupported"
     sdlRenderTargetSupported :: Ptr RendererStruct -> IO CInt
 
 renderTargetSupported :: Renderer -> IO Bool
@@ -575,7 +575,7 @@ renderTargetSupported renderer = withForeignPtr renderer $ \rp -> do
     return $ ret == 0
 
 
-foreign import ccall unsafe "SDL_SetRenderDrawBlendMode"
+foreign import ccall safe "SDL_SetRenderDrawBlendMode"
   sdlSetRenderDrawBlendMode :: Ptr RendererStruct -> CInt -> IO CInt
 
 setRenderDrawBlendMode :: Renderer -> BlendMode -> IO ()
@@ -585,7 +585,7 @@ setRenderDrawBlendMode renderer blendMode =
   (== 0) <$> sdlSetRenderDrawBlendMode r (blendModeToCInt blendMode)
 
 
-foreign import ccall unsafe "SDL_SetRenderDrawColor"
+foreign import ccall safe "SDL_SetRenderDrawColor"
   sdlSetRenderDrawColor :: Ptr RendererStruct -> Word8 -> Word8 -> Word8 -> Word8 -> IO Int
 
 setRenderDrawColor :: Renderer -> Word8 -> Word8 -> Word8 -> Word8 -> IO ()
@@ -593,7 +593,7 @@ setRenderDrawColor renderer r g b a =
   unwrapBool "setRenderDrawColor" $ withForeignPtr renderer $ \cR ->
     (== 0) <$> sdlSetRenderDrawColor cR r g b a
 
-foreign import ccall unsafe "SDL_SetRenderTarget"
+foreign import ccall safe "SDL_SetRenderTarget"
   sdlSetRenderTarget :: Ptr RendererStruct -> Ptr TextureStruct -> IO CInt
 
 setRenderTarget :: Renderer -> Texture -> IO ()
@@ -604,7 +604,7 @@ setRenderTarget renderer texture =
   (== 0) <$> sdlSetRenderTarget r t
 
 
-foreign import ccall unsafe "SDL_SetTextureAlphaMod"
+foreign import ccall safe "SDL_SetTextureAlphaMod"
   sdlSetTextureAlphaMod :: Ptr TextureStruct -> Word8 -> IO CInt
 
 setTextureAlphaMod :: Texture -> Word8 -> IO ()
@@ -614,7 +614,7 @@ setTextureAlphaMod texture alpha =
   (== 0) <$> sdlSetTextureAlphaMod t alpha
 
 
-foreign import ccall unsafe "SDL_SetTextureBlendMode"
+foreign import ccall safe "SDL_SetTextureBlendMode"
   sdlSetTextureBlendMode :: Ptr TextureStruct -> CInt -> IO CInt
 
 setTextureBlendMode :: Texture -> BlendMode -> IO ()
@@ -624,7 +624,7 @@ setTextureBlendMode t b =
   (== 0) <$> sdlSetTextureBlendMode ct (blendModeToCInt b)
 
 
-foreign import ccall unsafe "SDL_SetTextureColorMod"
+foreign import ccall safe "SDL_SetTextureColorMod"
   sdlSetTextureColorMod :: Ptr TextureStruct -> Word8 -> Word8 -> Word8 -> IO CInt
 
 setTextureColorMod :: Texture -> Word8 -> Word8 -> Word8 -> IO ()
@@ -634,14 +634,14 @@ setTextureColorMod texture r g b =
   (== 0) <$> sdlSetTextureColorMod t r g b
 
 
-foreign import ccall unsafe "SDL_UnlockTexture"
+foreign import ccall safe "SDL_UnlockTexture"
   sdlUnlockTexture :: Ptr TextureStruct -> IO ()
 
 unlockTexture :: Texture -> IO ()
 unlockTexture texture = withForeignPtr texture $ \tp -> sdlUnlockTexture tp
 
 
-foreign import ccall unsafe "SDL_UpdateTexture"
+foreign import ccall safe "SDL_UpdateTexture"
   sdlUpdateTexture :: Ptr TextureStruct -> Ptr Rect -> Ptr a -> CInt -> IO CInt
 
 updateTexture :: Texture -> Rect -> Ptr a -> Int -> IO ()

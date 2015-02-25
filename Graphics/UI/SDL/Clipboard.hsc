@@ -14,7 +14,7 @@ import Foreign.C
 import Graphics.UI.SDL.Utilities (fatalSDLNull, fatalSDLBool, sdlBoolToBool, sdlFree)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetClipboardText"
+foreign import ccall safe "SDL_GetClipboardText"
   sdlGetClipboardText :: IO CString
 
 -- | Use this function to get UTF-8 text from the clipboard.
@@ -26,7 +26,7 @@ getClipboardText = do
   return $! decodeUtf8 bs
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetClipboardText"
+foreign import ccall safe "SDL_SetClipboardText"
   sdlSetClipboardText :: CString -> IO #{type int}
 
 -- | Use this function to put UTF-8 text into the clipboard.
@@ -36,7 +36,7 @@ setClipboardText txt =
     sdlSetClipboardText
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_HasClipboardText"
+foreign import ccall safe "SDL_HasClipboardText"
   sdlHasClipboardText :: IO #{type SDL_bool}
 
 -- | Use this function to return a flag indicating whether the clipboard

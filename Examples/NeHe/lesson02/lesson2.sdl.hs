@@ -53,7 +53,7 @@ drawGLScreen = do
   loadIdentity
   translate $ (\(x,y,z) -> Vector3 x y z) polygonTrans
   renderPrimitive Polygon $ mapM_ (\(x,y,z) -> vertex$Vertex3 x y z) polygonPoints
-  
+
   loadIdentity
   translate $ (\(x,y,z) -> Vector3 x y z) quadsTrans
   renderPrimitive Quads $ mapM_ (\(x,y,z) -> vertex$Vertex3 x y z) quadsPoints
