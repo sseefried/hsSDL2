@@ -332,6 +332,17 @@ pollEvent = alloca $ \ptr -> do
     0 -> return Nothing
     _ -> maybePeek peek ptr
 
+foreign import ccall "SDL_WaitEvent"
+  sdlWaitEvent :: Ptr Event -> IO Int
+
+-- | waits indefinitely for next available event
+waitEvent :: IO (Maybe Event)
+waitEvent = alloca $ \ptr -> do
+  ret <- sdlWaitEvent ptr
+  case ret of
+    0 -> return Nothing
+    _ -> maybePeek peek ptr
+
 foreign import ccall "wrapper"
   mkEventFilter :: (Ptr () -> Ptr Event -> IO ()) -> IO (FunPtr (Ptr () -> Ptr Event -> IO ()))
 
