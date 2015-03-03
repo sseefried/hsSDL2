@@ -61,7 +61,7 @@ initFlagToC InitNoParachute    = 1048576
 {-# LINE 50 "Graphics/UI/SDL/Init.hsc" #-}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_Init"
+foreign import ccall safe "SDL_Init"
   sdlInit :: Word32 -> IO Int32
 {-# LINE 54 "Graphics/UI/SDL/Init.hsc" #-}
 
@@ -70,11 +70,11 @@ init = fatalSDLBool "SDL_Init" .
   sdlInit . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_Quit"
+foreign import ccall safe "SDL_Quit"
   quit :: IO ()
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_InitSubSystem"
+foreign import ccall safe "SDL_InitSubSystem"
   sdlInitSubSystem :: Word32 -> IO Int32
 {-# LINE 66 "Graphics/UI/SDL/Init.hsc" #-}
 
@@ -83,7 +83,7 @@ initSubSystem = fatalSDLBool "SDL_InitSubSystem" .
   sdlInitSubSystem . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_QuitSubSystem"
+foreign import ccall safe "SDL_QuitSubSystem"
   sdlQuitSubSystem :: Word32 -> IO ()
 {-# LINE 74 "Graphics/UI/SDL/Init.hsc" #-}
 
@@ -91,7 +91,7 @@ quitSubSystem :: [InitFlag] -> IO ()
 quitSubSystem = sdlQuitSubSystem . toBitmask initFlagToC
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_WasInit"
+foreign import ccall safe "SDL_WasInit"
   sdlWasInit :: Word32 -> IO Word32
 {-# LINE 81 "Graphics/UI/SDL/Init.hsc" #-}
 

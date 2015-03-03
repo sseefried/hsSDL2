@@ -179,11 +179,11 @@ instance Storable AudioSpec where
 {-# LINE 141 "Graphics/UI/SDL/Audio.hsc" #-}
     <*> pure Nothing
 
-foreign import ccall unsafe "&SDL_FreeWAV"
+foreign import ccall safe "&SDL_FreeWAV"
   sdlFreeWAV_finalizer :: FunPtr (Ptr (Word8) -> IO ())
 {-# LINE 145 "Graphics/UI/SDL/Audio.hsc" #-}
 
-foreign import ccall unsafe "SDL_LoadWAV_RW"
+foreign import ccall safe "SDL_LoadWAV_RW"
   sdlLoadWAV :: Ptr RWopsStruct -> Int32 -> Ptr AudioSpec -> Ptr (Ptr Word8) -> Ptr (Word32) -> IO (Ptr AudioSpec)
 {-# LINE 148 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -203,7 +203,7 @@ loadWAV filePath desiredSpec =
       outputBufferV <- V.unsafeFromForeignPtr0 foreignAudioBuffer . fromIntegral <$> peek outputBufferSizePtr
       return (outputBufferV, actualSpec)
 
-foreign import ccall unsafe "SDL_OpenAudioDevice"
+foreign import ccall safe "SDL_OpenAudioDevice"
   sdlOpenAudioDevice :: CString -> Int32 -> Ptr AudioSpec -> Ptr AudioSpec -> Int32
 {-# LINE 167 "Graphics/UI/SDL/Audio.hsc" #-}
                      -> IO (Word32)
@@ -225,7 +225,7 @@ openAudioDevice deviceName usage desiredSpec _ =
     actualSpec <- peek actualSpecPtr
     return (AudioDevice devId, actualSpec)
 
-foreign import ccall unsafe "SDL_OpenAudio"
+foreign import ccall safe "SDL_OpenAudio"
   sdlOpenAudio :: Ptr AudioSpec -> Ptr AudioSpec -> IO Int32
 {-# LINE 185 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -241,7 +241,7 @@ encodeUsage :: AudioDeviceUsage -> Int32
 encodeUsage ForPlayback = 0
 encodeUsage ForCapture = 1
 
-foreign import ccall unsafe "SDL_PauseAudioDevice"
+foreign import ccall safe "SDL_PauseAudioDevice"
   sdlPauseAudioDevice :: Word32 -> Int32 -> IO ()
 {-# LINE 199 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -250,14 +250,14 @@ pauseAudioDevice (AudioDevice dId) paused =
   sdlPauseAudioDevice dId (if paused then 1 else 0)
  
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LockAudio"
+foreign import ccall safe "SDL_LockAudio"
   lockAudio :: IO ()
   
-foreign import ccall unsafe "SDL_UnlockAudio"
+foreign import ccall safe "SDL_UnlockAudio"
   unlockAudio :: IO ()
   
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LockAudioDevice"
+foreign import ccall safe "SDL_LockAudioDevice"
   sdlLockAudioDevice :: Word32 -> IO ()
 {-# LINE 214 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -265,7 +265,7 @@ lockAudioDevice :: AudioDevice -> IO ()
 lockAudioDevice (AudioDevice dId) = sdlLockAudioDevice dId
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_UnlockAudioDevice"
+foreign import ccall safe "SDL_UnlockAudioDevice"
   sdlUnlockAudioDevice :: Word32 -> IO ()
 {-# LINE 221 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -273,12 +273,12 @@ unlockAudioDevice :: AudioDevice -> IO ()
 unlockAudioDevice (AudioDevice dId) = sdlUnlockAudioDevice dId
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumAudioDrivers"
+foreign import ccall safe "SDL_GetNumAudioDrivers"
   getNumAudioDrivers :: IO Int32
 {-# LINE 228 "Graphics/UI/SDL/Audio.hsc" #-}
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDriver"
+foreign import ccall safe "SDL_GetAudioDriver"
   sdlGetAudioDriver :: Int32 -> IO CString
 {-# LINE 232 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -287,14 +287,14 @@ getAudioDriver :: Int32 -> IO String
 getAudioDriver = sdlGetAudioDriver >=> peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetCurrentAudioDriver"
+foreign import ccall safe "SDL_GetCurrentAudioDriver"
   sdlGetCurrentAudioDriver :: IO CString
 
 getCurrentAudioDriver :: IO (Maybe String)
 getCurrentAudioDriver = sdlGetCurrentAudioDriver >>= maybePeek peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetNumAudioDevices"
+foreign import ccall safe "SDL_GetNumAudioDevices"
   sdlGetNumAudioDevices :: Int32 -> IO Int32
 {-# LINE 246 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -315,7 +315,7 @@ decodeAudioStatus 2 = AudioPaused
 {-# LINE 257 "Graphics/UI/SDL/Audio.hsc" #-}
 decodeAudioStatus i = error $ "Unexpected SDL_AudioStatus: " ++ show i
 
-foreign import ccall unsafe "SDL_GetAudioStatus"
+foreign import ccall safe "SDL_GetAudioStatus"
   sdlGetAudioStatus :: IO Word32
 {-# LINE 261 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -323,7 +323,7 @@ getAudioStatus :: IO AudioStatus
 getAudioStatus = decodeAudioStatus <$> sdlGetAudioStatus
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDeviceName"
+foreign import ccall safe "SDL_GetAudioDeviceName"
   sdlGetAudioDeviceName :: Int32 -> Int32 -> IO CString
 {-# LINE 268 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -334,7 +334,7 @@ getAudioDeviceName usage index =
     (sdlGetAudioDeviceName (encodeUsage usage) index) >>= peekCString
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetAudioDeviceStatus"
+foreign import ccall safe "SDL_GetAudioDeviceStatus"
   sdlGetAudioDeviceStatus :: Word32 -> IO Word32
 {-# LINE 277 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -342,7 +342,7 @@ getAudioDeviceStatus :: AudioDevice -> IO AudioStatus
 getAudioDeviceStatus (AudioDevice dId) =
   decodeAudioStatus <$> sdlGetAudioDeviceStatus dId
 
-foreign import ccall unsafe "SDL_MixAudio"
+foreign import ccall safe "SDL_MixAudio"
   sdlMixAudio :: Ptr Word8 -> Ptr Word8 -> Word32 -> Int32 -> IO ()
 {-# LINE 284 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -356,7 +356,7 @@ mixAudio xbs ybs volume =
            vol' = fromIntegral volume
        in sdlMixAudio xbs'' ybs'' len' vol'
 
-foreign import ccall unsafe "SDL_MixAudioFormat"
+foreign import ccall safe "SDL_MixAudioFormat"
   sdlMixAudioFormat :: Ptr Word8 -> Ptr Word8 -> Word16 -> Word32 -> Int32 -> IO ()
 {-# LINE 297 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -371,7 +371,7 @@ mixAudioFormat xbs ybs aufmt volume =
            fmt' = fromAudioFormat aufmt
        in sdlMixAudioFormat xbs'' ybs'' fmt' len' vol'
 
-foreign import ccall unsafe "SDL_AudioInit"
+foreign import ccall safe "SDL_AudioInit"
   sdlAudioInit :: CString -> IO Int32
 {-# LINE 311 "Graphics/UI/SDL/Audio.hsc" #-}
 
@@ -380,20 +380,20 @@ audioInit driver_name =
   withCString driver_name $ \cstr ->
     fatalSDLBool "SDL_AudioInit" (sdlAudioInit cstr)
 
-foreign import ccall unsafe "SDL_AudioQuit"
+foreign import ccall safe "SDL_AudioQuit"
   audioQuit :: IO ()
 
-foreign import ccall unsafe "SDL_CloseAudio"
+foreign import ccall safe "SDL_CloseAudio"
   closeAudio :: IO ()
 
-foreign import ccall unsafe "SDL_CloseAudioDevice"
+foreign import ccall safe "SDL_CloseAudioDevice"
   sdlCloseAudioDevice :: Word32 -> IO ()
 {-# LINE 325 "Graphics/UI/SDL/Audio.hsc" #-}
 
 closeAudioDevice :: AudioDevice -> IO ()
 closeAudioDevice (AudioDevice dev) = sdlCloseAudioDevice dev
 
-foreign import ccall unsafe "SDL_PauseAudio"
+foreign import ccall safe "SDL_PauseAudio"
   sdlPauseAudio :: Int32 -> IO ()
 {-# LINE 331 "Graphics/UI/SDL/Audio.hsc" #-}
 

@@ -1156,28 +1156,28 @@ toKeymod 32768 = KeymodReserved
 {-# LINE 645 "Graphics/UI/SDL/Keyboard.hsc" #-}
 toKeymod _ = error "unhandled keymod"
 
-foreign import ccall unsafe "SDL_GetKeyboardFocus"
+foreign import ccall safe "SDL_GetKeyboardFocus"
   sdlGetKeyboardFocus :: IO (Ptr WindowStruct)
 
 getKeyboardFocus :: IO Window
 getKeyboardFocus =
   sdlGetKeyboardFocus >>= mkFinalizedWindow
 
-foreign import ccall unsafe "SDL_GetModState"
+foreign import ccall safe "SDL_GetModState"
   sdlGetModState :: IO Word32
 {-# LINE 656 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
 getModState :: IO Keymod
 getModState = sdlGetModState >>= return . toKeymod
 
-foreign import ccall unsafe "SDL_SetModState"
+foreign import ccall safe "SDL_SetModState"
   sdlSetModState :: Word32 -> IO ()
 {-# LINE 662 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
 setModState :: Keymod -> IO ()
 setModState keymod = sdlSetModState $ fromKeymod keymod
 
-foreign import ccall unsafe "SDL_GetKeyFromScancode"
+foreign import ccall safe "SDL_GetKeyFromScancode"
   sdlGetKeyFromScancode :: Word32 -> IO Int32
 {-# LINE 668 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1186,7 +1186,7 @@ getKeyFromScancode sc =
   let sc' = fromIntegral $ fromEnum sc
   in toEnum . fromIntegral <$> sdlGetKeyFromScancode sc'
 
-foreign import ccall unsafe "SDL_GetScancodeFromKey"
+foreign import ccall safe "SDL_GetScancodeFromKey"
   sdlGetScancodeFromKey :: Int32 -> IO Word32
 {-# LINE 676 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1195,7 +1195,7 @@ getScancodeFromKey kc =
   let kc' = fromIntegral $ fromEnum kc
   in toEnum . fromIntegral <$> sdlGetScancodeFromKey kc'
 
-foreign import ccall unsafe "SDL_GetScancodeName"
+foreign import ccall safe "SDL_GetScancodeName"
   sdlGetScancodeName :: Word32 -> IO CString
 {-# LINE 684 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1204,7 +1204,7 @@ getScancodeName sc =
   let sc' = fromIntegral $ fromEnum sc
   in sdlGetScancodeName sc' >>= peekCString
 
-foreign import ccall unsafe "SDL_GetScancodeFromName"
+foreign import ccall safe "SDL_GetScancodeFromName"
   sdlGetScancodeFromName :: CString -> IO Word32
 {-# LINE 692 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1213,7 +1213,7 @@ getScancodeFromName name =
   withCString name $ \name' ->
     toEnum . fromIntegral <$> sdlGetScancodeFromName name'
 
-foreign import ccall unsafe "SDL_GetKeyName"
+foreign import ccall safe "SDL_GetKeyName"
   sdlGetKeyName :: Int32 -> IO CString
 {-# LINE 700 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1222,7 +1222,7 @@ getKeyName kc =
   let kc' = fromIntegral $ fromEnum kc
   in sdlGetKeyName kc' >>= peekCString
 
-foreign import ccall unsafe "SDL_GetKeyFromName"
+foreign import ccall safe "SDL_GetKeyFromName"
   sdlGetKeyFromName :: CString -> IO Int32
 {-# LINE 708 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
@@ -1231,33 +1231,33 @@ getKeyFromName name =
   withCString name $ \name' ->
     toEnum . fromIntegral <$> sdlGetKeyFromName name'
 
-foreign import ccall unsafe "SDL_StartTextInput"
+foreign import ccall safe "SDL_StartTextInput"
   startTextInput :: IO ()
 
-foreign import ccall unsafe "SDL_IsTextInputActive"
+foreign import ccall safe "SDL_IsTextInputActive"
   sdlIsTextInputActive :: IO Word32
 {-# LINE 719 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
 isTextInputActive :: IO Bool
 isTextInputActive = sdlBoolToBool <$> sdlIsTextInputActive
 
-foreign import ccall unsafe "SDL_StopTextInput"
+foreign import ccall safe "SDL_StopTextInput"
   stopTextInput :: IO ()
 
-foreign import ccall unsafe "SDL_SetTextInputRect"
+foreign import ccall safe "SDL_SetTextInputRect"
   sdlSetTextInputRect :: Ptr Rect -> IO ()
 
 setTextInputRect :: Rect -> IO ()
 setTextInputRect = flip with sdlSetTextInputRect
 
-foreign import ccall unsafe "SDL_HasScreenKeyboardSupport"
+foreign import ccall safe "SDL_HasScreenKeyboardSupport"
   sdlHasScreenKeyboardSupport :: IO Word32
 {-# LINE 734 "Graphics/UI/SDL/Keyboard.hsc" #-}
 
 hasScreenKeyboardSupport :: IO Bool
 hasScreenKeyboardSupport = sdlBoolToBool <$> sdlHasScreenKeyboardSupport
 
-foreign import ccall unsafe "SDL_IsScreenKeyboardShown"
+foreign import ccall safe "SDL_IsScreenKeyboardShown"
   sdlIsScreenKeyboardShown :: Ptr WindowStruct -> IO Word32
 {-# LINE 740 "Graphics/UI/SDL/Keyboard.hsc" #-}
 

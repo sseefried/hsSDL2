@@ -77,7 +77,7 @@ instance Storable Point where
     (\hsc_ptr -> pokeByteOff hsc_ptr 4) ptr (fromIntegral y :: CInt)
 {-# LINE 63 "Graphics/UI/SDL/Rect.hsc" #-}
 
-foreign import ccall unsafe "SDL_EnclosePoints"
+foreign import ccall safe "SDL_EnclosePoints"
   sdlEnclosePoints :: Ptr Point -> Int32 -> Ptr Rect -> Ptr Rect -> IO Word32
 {-# LINE 66 "Graphics/UI/SDL/Rect.hsc" #-}
 
@@ -91,7 +91,7 @@ enclosePoints points clip =
     rect <- peek rect'
     handleErrorI "enclosePoints" r $ const $ return rect
 
-foreign import ccall unsafe "SDL_RectEmpty_Wrapper"
+foreign import ccall safe "SDL_RectEmpty_Wrapper"
   sdlRectEmpty :: Ptr Rect -> IO Word32
 {-# LINE 79 "Graphics/UI/SDL/Rect.hsc" #-}
 
@@ -99,7 +99,7 @@ rectEmpty :: Rect -> IO Bool
 rectEmpty rect =
   (with rect $ sdlRectEmpty) >>= return . sdlBoolToBool
 
-foreign import ccall unsafe "SDL_RectEquals_Wrapper"
+foreign import ccall safe "SDL_RectEquals_Wrapper"
   sdlRectEquals :: Ptr Rect -> Ptr Rect -> IO Word32
 {-# LINE 86 "Graphics/UI/SDL/Rect.hsc" #-}
 
@@ -109,7 +109,7 @@ rectEquals a b =
   with b $ \b' ->
     sdlRectEquals a' b' >>= return . sdlBoolToBool
 
-foreign import ccall unsafe "SDL_HasIntersection"
+foreign import ccall safe "SDL_HasIntersection"
   sdlHasIntersection :: Ptr Rect -> Ptr Rect -> IO Word32
 {-# LINE 95 "Graphics/UI/SDL/Rect.hsc" #-}
 
@@ -119,7 +119,7 @@ hasIntersection a b =
   with b $ \b' ->
     sdlHasIntersection a' b' >>= return . sdlBoolToBool
 
-foreign import ccall unsafe "SDL_IntersectRect"
+foreign import ccall safe "SDL_IntersectRect"
   sdlIntersectRect :: Ptr Rect -> Ptr Rect -> Ptr Rect -> IO Word32
 {-# LINE 104 "Graphics/UI/SDL/Rect.hsc" #-}
 
@@ -132,7 +132,7 @@ intersectRect a b =
       c <- peek c'
       handleErrorI "intersectRect" r $ const $ return c
 
-foreign import ccall unsafe "SDL_IntersectRectAndLine"
+foreign import ccall safe "SDL_IntersectRectAndLine"
   sdlIntersectRectAndLine :: Ptr Rect -> Ptr Int32 -> Ptr Int32
 {-# LINE 116 "Graphics/UI/SDL/Rect.hsc" #-}
                              -> Ptr Int32 -> Ptr Int32 -> IO Word32
@@ -147,7 +147,7 @@ intersectRectAndLine r x1 y1 x2 y2 =
   with (fromIntegral y2) $ \y2' ->
     sdlIntersectRectAndLine r' x1' y1' x2' y2' >>= return . sdlBoolToBool
 
-foreign import ccall unsafe "SDL_UnionRect"
+foreign import ccall safe "SDL_UnionRect"
   sdlUnionRect :: Ptr Rect -> Ptr Rect -> Ptr Rect -> IO ()
 
 unionRect :: Rect -> Rect -> IO Rect

@@ -40,7 +40,7 @@ data PowerInfo = PowerInfo { powerInfoState :: !PowerState
 {-# LINE 32 "Graphics/UI/SDL/Power.hsc" #-}
                            }
 
-foreign import ccall unsafe "SDL_GetPowerInfo"
+foreign import ccall safe "SDL_GetPowerInfo"
   sdlGetPowerInfo :: Ptr Int32 -> Ptr Int32 -> IO Word32
 {-# LINE 36 "Graphics/UI/SDL/Power.hsc" #-}
 

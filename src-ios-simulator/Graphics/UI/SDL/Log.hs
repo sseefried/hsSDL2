@@ -29,7 +29,7 @@ import Foreign.C
 import Graphics.UI.SDL.StringUtilities (escapePrintf)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_Log"
+foreign import ccall safe "SDL_Log"
   sdlLog :: CString -> IO ()
 
 log :: String -> IO ()
@@ -89,7 +89,7 @@ logCategoryFromInt c = case c of
   i -> error $ "Unexpected SDL_LogCategory: " ++ show i
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogCritical"
+foreign import ccall safe "SDL_LogCritical"
   sdlLogCritical :: Int32 -> CString -> IO ()
 {-# LINE 74 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -98,7 +98,7 @@ logCritical category message = withCString (escapePrintf message) $
   sdlLogCritical (logCategoryToInt category)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogDebug"
+foreign import ccall safe "SDL_LogDebug"
   sdlLogDebug :: Int32 -> CString -> IO ()
 {-# LINE 82 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -107,7 +107,7 @@ logDebug category message = withCString (escapePrintf message) $
   sdlLogDebug (logCategoryToInt category)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogError"
+foreign import ccall safe "SDL_LogError"
   sdlLogError :: Int32 -> CString -> IO ()
 {-# LINE 90 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -162,7 +162,7 @@ logPriorityFromInt p = case p of
 type SDLOutputFunction = Ptr () -> Int32 -> Word32 -> CString -> IO ()
 {-# LINE 126 "Graphics/UI/SDL/Log.hsc" #-}
 
-foreign import ccall unsafe "SDL_LogGetOutputFunction"
+foreign import ccall safe "SDL_LogGetOutputFunction"
   sdlLogGetOutputFunction :: Ptr (FunPtr SDLOutputFunction) -> Ptr (Ptr ()) -> IO ()
 
 foreign import ccall "dynamic"
@@ -181,7 +181,7 @@ logGetOutputFunction =
       withCString message $ f userData (logCategoryToInt category) (logPriorityToInt priority)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogGetPriority"
+foreign import ccall safe "SDL_LogGetPriority"
   sdlLogGetPriority :: Int32 -> IO Word32
 {-# LINE 148 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -189,7 +189,7 @@ logGetPriority :: LogCategory -> IO LogPriority
 logGetPriority = fmap logPriorityFromInt . sdlLogGetPriority . logCategoryToInt
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogInfo"
+foreign import ccall safe "SDL_LogInfo"
   sdlLogInfo :: Int32 -> CString -> IO ()
 {-# LINE 155 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -198,7 +198,7 @@ logInfo category message = withCString (escapePrintf message) $
   sdlLogInfo (logCategoryToInt category)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogMessage"
+foreign import ccall safe "SDL_LogMessage"
   sdlLogMessage :: Int32 -> Word32 -> CString -> IO ()
 {-# LINE 163 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -207,11 +207,11 @@ logMessage category priority message = withCString (escapePrintf message) $
   sdlLogMessage (logCategoryToInt category) (logPriorityToInt priority)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogResetPriorities"
+foreign import ccall safe "SDL_LogResetPriorities"
   logResetPriorities :: IO ()
   
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogSetAllPriority"
+foreign import ccall safe "SDL_LogSetAllPriority"
   sdlLogSetAllPriority :: Word32 -> IO ()
 {-# LINE 175 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -219,7 +219,7 @@ logSetAllPriority :: LogPriority -> IO ()
 logSetAllPriority = sdlLogSetAllPriority . logPriorityToInt
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogSetOutputFunction"
+foreign import ccall safe "SDL_LogSetOutputFunction"
   sdlLogSetOutputFunction :: FunPtr (SDLOutputFunction) -> Ptr () -> IO ()
   
 foreign import ccall "wrapper"
@@ -232,7 +232,7 @@ logSetOutputFunction f = do
   sdlLogSetOutputFunction f' nullPtr
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogSetPriority"
+foreign import ccall safe "SDL_LogSetPriority"
   sdlLogSetPriority :: Int32 -> Word32 -> IO ()
 {-# LINE 195 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -240,7 +240,7 @@ logSetPriority :: LogCategory -> LogPriority -> IO ()
 logSetPriority c p = sdlLogSetPriority (logCategoryToInt c) (logPriorityToInt p)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogVerbose"
+foreign import ccall safe "SDL_LogVerbose"
   sdlLogVerbose :: Int32 -> CString -> IO ()
 {-# LINE 202 "Graphics/UI/SDL/Log.hsc" #-}
 
@@ -249,7 +249,7 @@ logVerbose category message = withCString (escapePrintf message) $
   sdlLogVerbose (logCategoryToInt category)
   
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_LogWarn"
+foreign import ccall safe "SDL_LogWarn"
   sdlLogWarn :: Int32 -> CString -> IO ()
 {-# LINE 210 "Graphics/UI/SDL/Log.hsc" #-}
 

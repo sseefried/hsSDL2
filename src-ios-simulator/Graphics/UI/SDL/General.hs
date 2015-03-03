@@ -63,7 +63,7 @@ failWithError msg
     = do err <- fmap (fromMaybe "No SDL error") getError
          ioError $ userError $ msg ++ "\nSDL message: " ++ err
 
-foreign import ccall unsafe "SDL_ShowSimpleMessageBox" sdlShowSimpleMessageBox :: CUInt -> CString -> CString -> Ptr WindowStruct -> IO ()
+foreign import ccall safe "SDL_ShowSimpleMessageBox" sdlShowSimpleMessageBox :: CUInt -> CString -> CString -> Ptr WindowStruct -> IO ()
 
 data MessageBoxType = Error | Warning | Information
 

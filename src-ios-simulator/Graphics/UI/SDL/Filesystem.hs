@@ -8,13 +8,13 @@ module Graphics.UI.SDL.Filesystem
 
 import Foreign.C.String
 
-foreign import ccall unsafe "SDL_GetBasePath"
+foreign import ccall safe "SDL_GetBasePath"
   sdlGetBasePath :: IO CString
 
 getBasePath :: IO String
 getBasePath = sdlGetBasePath >>= peekCString
 
-foreign import ccall unsafe "SDL_GetPrefPath"
+foreign import ccall safe "SDL_GetPrefPath"
   sdlGetPrefPath:: CString -> CString -> IO CString
 
 getPrefPath :: String -> String -> IO String

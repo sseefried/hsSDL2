@@ -50,18 +50,18 @@ removeTimer :: TimerCallback -> IO Bool
 removeTimer (TimerCallback tId) = do
   sdlBoolToBool <$> sdlRemoveTimer tId
 
-foreign import ccall unsafe "SDL_Delay"
+foreign import ccall safe "SDL_Delay"
   delay :: Word32 -> IO ()
 
-foreign import ccall unsafe "SDL_GetPerformanceCounter"
+foreign import ccall safe "SDL_GetPerformanceCounter"
   getPerformanceCounter :: IO (Word64)
 {-# LINE 53 "Graphics/UI/SDL/Timer.hsc" #-}
 
-foreign import ccall unsafe "SDL_GetPerformanceFrequency"
+foreign import ccall safe "SDL_GetPerformanceFrequency"
   getPerformanceFrequency :: IO (Word64)
 {-# LINE 56 "Graphics/UI/SDL/Timer.hsc" #-}
 
-foreign import ccall unsafe "SDL_GetTicks"
+foreign import ccall safe "SDL_GetTicks"
   getTicks :: IO (Word32)
 {-# LINE 59 "Graphics/UI/SDL/Timer.hsc" #-}
 

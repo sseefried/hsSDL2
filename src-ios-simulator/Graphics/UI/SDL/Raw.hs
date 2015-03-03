@@ -21,19 +21,19 @@ module Graphics.UI.SDL.Raw
 import Foreign
 import Graphics.UI.SDL.Types
 
-foreign import ccall unsafe "&SDL_FreeSurface"
+foreign import ccall safe "&SDL_FreeSurface"
   sdlFreeSurface_finalizer' :: FunPtr (Ptr SurfaceStruct -> IO ())
 
 mkFinalizedSurface :: Ptr SurfaceStruct -> IO Surface
 mkFinalizedSurface = newForeignPtr sdlFreeSurface_finalizer'
 
-foreign import ccall unsafe "&SDL_DestroyTexture"
+foreign import ccall safe "&SDL_DestroyTexture"
   sdlDestroyTexture_finalizer' :: FunPtr (Ptr TextureStruct -> IO ())
 
 mkFinalizedTexture :: Ptr TextureStruct -> IO Texture
 mkFinalizedTexture = newForeignPtr  sdlDestroyTexture_finalizer'
 
-foreign import ccall unsafe "&SDL_DestroyWindow"
+foreign import ccall safe "&SDL_DestroyWindow"
   sdlDestroyWindow_finalizer' :: FunPtr (Ptr WindowStruct -> IO ())
 
 mkFinalizedWindow :: Ptr WindowStruct -> IO Window

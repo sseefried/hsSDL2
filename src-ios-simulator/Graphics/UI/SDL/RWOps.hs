@@ -28,7 +28,7 @@ import Graphics.UI.SDL.Types (RWops, RWopsStruct)
 withFile :: FilePath -> String -> (RWops -> IO a) -> IO a
 withFile path mode = bracket (fromFile path mode) closeRWops
 
-foreign import ccall unsafe "SDL_RWFromFile"
+foreign import ccall safe "SDL_RWFromFile"
   sdlRWFromFile :: CString -> CString -> IO (Ptr RWopsStruct)
 
 fromFile :: FilePath -> String -> IO RWops

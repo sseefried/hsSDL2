@@ -97,5 +97,5 @@ boolToSdlBool True = 1
 boolToSdlBool False = 0
 {-# LINE 90 "Graphics/UI/SDL/Utilities.hsc" #-}
 
-foreign import ccall unsafe "SDL_free"
+foreign import ccall safe "SDL_free"
  sdlFree :: Ptr a -> IO ()

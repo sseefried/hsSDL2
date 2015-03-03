@@ -15,18 +15,18 @@ import Foreign.C
 import Graphics.UI.SDL.StringUtilities (escapePrintf)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_ClearError"
+foreign import ccall safe "SDL_ClearError"
   clearError :: IO ()
   
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_GetError"
+foreign import ccall safe "SDL_GetError"
   sdlGetError :: IO CString
   
 getError :: IO (Maybe String)
 getError = mfilter (not . null) <$> (sdlGetError >>= maybePeek peekCString)
 
 --------------------------------------------------------------------------------
-foreign import ccall unsafe "SDL_SetError"
+foreign import ccall safe "SDL_SetError"
   sdlSetError :: CString -> IO Int32
 {-# LINE 29 "Graphics/UI/SDL/Error.hsc" #-}
 
