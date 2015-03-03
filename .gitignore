@@ -1,0 +1,9 @@
+Setup.hi
+Setup.o
+Setup
+config.*
+*~
+includes/HsSDLConfig.h
+SDL.buildinfo
+conf*.file
+dist/
