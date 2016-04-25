@@ -14,8 +14,9 @@ module Graphics.UI.SDL.Events where
 
 import Control.Applicative
 import Control.Monad ((>=>), void)
-import Data.Word
 import Data.Int
+import Data.Maybe
+import Data.Word
 import Foreign hiding (void)
 import Foreign.C
 import Graphics.UI.SDL.Keysym
@@ -399,12 +400,30 @@ peekFinger ptr = do
   <*> #{peek SDL_Finger, y}  ptr
   <*> #{peek SDL_Finger, pressure} ptr
 
-foreign import ccall "SDL_GetTouchFinger" sdlGetTouchFinger :: CLong -> CInt -> IO (Ptr Finger)
+type TouchId = CLong
 
-getTouchFinger :: CInt -> IO (Maybe Finger)
-getTouchFinger fid = do
-   ptr <- sdlGetTouchFinger 0 fid
-   if ptr == nullPtr
-    then return Nothing
-    else Just <$> peekFinger ptr
+foreign import ccall "SDL_GetTouchFinger" sdlGetTouchFinger :: TouchId -> CInt -> IO (Ptr Finger)
+foreign import ccall "SDL_GetTouchDevice" sdlGetTouchDevice :: CInt -> IO TouchId
+foreign import ccall "SDL_GetNumTouchFingers" sdlGetNumTouchFingers :: TouchId -> IO CInt
 
+--
+-- FIXME: sseefried: How do I avoid getting the touch device index each time
+--
+getTouchFingers :: IO [Finger]
+getTouchFingers  = do
+  touchDevIndex <- sdlGetTouchDevice 0
+  n <- sdlGetNumTouchFingers touchDevIndex
+  catMaybes <$> mapM (getTouchFinger touchDevIndex) [0..n-1]
+  where
+    getTouchFinger :: TouchId -> CInt -> IO (Maybe Finger)
+    getTouchFinger touchDevIndex fid = do
+      ptr <- sdlGetTouchFinger touchDevIndex fid
+      if ptr == nullPtr
+       then return Nothing
+       else Just <$> peekFinger ptr
+
+-- FIXME: sseefried: How do I avoid getting the touch device index each time
+getNumTouchFingers :: IO Int
+getNumTouchFingers = do
+  touchDevIndex <- sdlGetTouchDevice 0
+  fromIntegral <$> sdlGetNumTouchFingers touchDevIndex
