@@ -15,6 +15,7 @@ module Graphics.UI.SDL.Events where
 import Control.Applicative
 import Control.Monad ((>=>), void)
 import Data.Word
+import Data.Int
 import Foreign hiding (void)
 import Foreign.C
 import Graphics.UI.SDL.Keysym
@@ -28,6 +29,12 @@ data MouseButton = LeftButton | RightButton | MiddleButton | MouseX1 | MouseX2 |
 
 data MouseButtonState = Pressed | Released
   deriving (Eq, Show)
+
+data Finger = Finger { fingerId       :: CLong
+                     , fingerX        :: CFloat
+                     , fingerY        :: CFloat
+                     , fingerPressure :: CFloat
+                     } deriving (Eq, Show)
 
 instance Enum MouseButton where
   toEnum #{const SDL_BUTTON_LEFT} = LeftButton
@@ -383,3 +390,21 @@ mouseStateGetter getter
 mouseStateToButtons :: Word32 -> [MouseButton]
 mouseStateToButtons s = filter (mousePressed s) allButtons
  where allButtons = [LeftButton, MiddleButton, RightButton, MouseX1, MouseX2]
+
+peekFinger :: Ptr Finger -> IO Finger
+peekFinger ptr = do
+      Finger
+  <$> #{peek SDL_Finger, id} ptr
+  <*> #{peek SDL_Finger, x}  ptr
+  <*> #{peek SDL_Finger, y}  ptr
+  <*> #{peek SDL_Finger, pressure} ptr
+
+foreign import ccall "SDL_GetTouchFinger" sdlGetTouchFinger :: CLong -> CInt -> IO (Ptr Finger)
+
+getTouchFinger :: CInt -> IO (Maybe Finger)
+getTouchFinger fid = do
+   ptr <- sdlGetTouchFinger 0 fid
+   if ptr == nullPtr
+    then return Nothing
+    else Just <$> peekFinger ptr
+
