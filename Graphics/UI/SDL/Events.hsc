@@ -119,6 +119,8 @@ data EventData
   | AppDidEnterBackground -- TODO
   | AppWillEnterForeground -- TODO
   | AppDidEnterForeground -- TODO
+  | AudioDeviceAdded -- TODO
+  | AudioDeviceRemoved -- TODO
   | ClipboardUpdate -- TODO
   | RenderTargetsReset -- TODO
   | UserEvent -- TODO
@@ -255,6 +257,8 @@ instance Storable Event where
       | isAppDidEnterBackground e  = pure  AppDidEnterBackground
       | isAppWillEnterForeground e = pure AppWillEnterForeground
       | isAppDidEnterForeground e  = pure AppDidEnterForeground
+      | isAudioDeviceAdded e       = pure AudioDeviceAdded
+      | isAudioDeviceRemoved e     = pure AudioDeviceRemoved
       | isClipboardUpdate e        = pure ClipboardUpdate
       | isRenderTargetsReset e     = pure RenderTargetsReset
       | isUserEvent          e     = pure UserEvent
@@ -311,6 +315,8 @@ instance Storable Event where
     isAppWillEnterForeground = (== #{const SDL_APP_WILLENTERFOREGROUND})
     isAppDidEnterForeground  = (== #{const SDL_APP_DIDENTERFOREGROUND})
 
+    isAudioDeviceAdded       = (== #{const SDL_AUDIODEVICEADDED})
+    isAudioDeviceRemoved     = (== #{const SDL_AUDIODEVICEREMOVED})
     isClipboardUpdate    = (== #{const SDL_CLIPBOARDUPDATE})
     isRenderTargetsReset = (== #{const SDL_RENDER_TARGETS_RESET})
     isUserEvent          = (== #{const SDL_USEREVENT})
